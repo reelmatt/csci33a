@@ -1,0 +1,34 @@
+$color: red;
+
+header {
+    text-align: center;
+}
+
+@media (min-width: 600px){
+    #title::before {
+        content: "Welcome to my site!";
+    }
+}
+
+@media (max-width: 599px) {
+    #title::before {
+        content: "Welcome!";
+    }
+}
+
+a > img {
+    width: 50px;
+}
+
+// %message {
+//
+// }
+//
+// .class {
+//     @extend %message;
+//
+// }
+
+.card:hover {
+    border-color: blue;
+}
