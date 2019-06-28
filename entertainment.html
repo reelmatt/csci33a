@@ -7,12 +7,50 @@
 
         <!-- Bootstrap CSS -->
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+
+        <link rel="stylesheet" href="main.css">
         <title>My Webpage! - Movies & TV</title>
     </head>
     <body>
-        <h1>Movies/TV!</h1>
-        <img src="images/me.jpg" width="30%px">
-        <p>My name is Matthew Thomas, and I created this site for CSCI s33a. Below, you can find more about my interests.</p>
-
+        <div class="container">
+            <div class="row">
+                <div class="col-12 col-sm-5">
+                    <h1>Home</h1>
+                    <img src="images/me.jpg" width="30%">
+                    <p>My name is Matthew Thomas, and I created this site for CSCI s33a. Below, you can find more about my interests.</p>
+                    <nav class="nav flex-column">
+                        <a class="nav-link" href="./index.html">Home</a>
+                        <a class="nav-link" href="./beer">Beer</a>
+                        <a class="nav-link active" href="./entertainment.html">Movies & TV</a>
+                        <a class="nav-link" href="./programming.html">Programming</a>
+                    </nav>
+                </div>
+                <div class="col-12 col-sm-7">
+                    <h1>Movies & TV!</h1>
+                    <a href="https://letterboxd.com/reelmatt/films/ratings/rated/5/">All my five-star ratings on letterboxd.</a>
+                    <p>My name is Matthew Thomas, and I created this site for CSCI s33a. Below, you can find more about my interests.</p>
+                    <h3>Movies</h3>
+                    <ul>
+                        <li>Lord of the Rings: The Return of the King</li>
+                        <li>The Godfather</li>
+                        <li>Die Hard</li>
+                        <li>Ocean's Eleven</li>
+                        <li>Snowpiercer</li>
+                        <li>Star Wars</li>
+                        <li>Ex Machina</li>
+                        <li>Hell or High Water</li>
+                    </ul>
+                    <h3>TV</h3>
+                    <ul>
+                        <li>24</li>
+                        <li>Battlestar Galactica (2004-2009)</li>
+                        <li>Cheers</li>
+                        <li>Stargate SG-1</li>
+                        <li>The Sopranos</li>
+                        <li>The Wire</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </body>
 </html>
