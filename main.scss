@@ -2,15 +2,33 @@ $color: red;
 
 header {
     text-align: center;
+
+    img {
+        width: 20%;
+    }
 }
 
-@media (min-width: 600px){
+.card-title, .card-text {
+    color: black;
+}
+
+#sidebar {
+    text-align: left;
+}
+
+.card {
+    // height: 500px;
+    margin: 10px;
+}
+
+
+@media (min-width: 768px){
     #title::before {
         content: "Welcome to my site!";
     }
 }
 
-@media (max-width: 599px) {
+@media (max-width: 767px) {
     #title::before {
         content: "Welcome!";
     }
@@ -20,14 +38,19 @@ a > img {
     width: 50px;
 }
 
-// %message {
-//
-// }
-//
-// .class {
-//     @extend %message;
-//
-// }
+%table {
+    column-width: 10px;
+}
+
+.beers {
+    @extend %table;
+    background-color: blue;
+
+}
+.programming {
+        @extend %table;
+        background: red;
+}
 
 .card:hover {
     border-color: blue;

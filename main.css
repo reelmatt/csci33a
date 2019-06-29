@@ -1,14 +1,34 @@
 header {
   text-align: center; }
+  header img {
+    width: 20%; }
 
-@media (min-width: 600px) {
+.card-title, .card-text {
+  color: black; }
+
+#sidebar {
+  text-align: left; }
+
+.card {
+  margin: 10px; }
+
+@media (min-width: 768px) {
   #title::before {
     content: "Welcome to my site!"; } }
-@media (max-width: 599px) {
+@media (max-width: 767px) {
   #title::before {
     content: "Welcome!"; } }
 a > img {
   width: 50px; }
+
+.beers, .programming {
+  column-width: 10px; }
+
+.beers {
+  background-color: blue; }
+
+.programming {
+  background: red; }
 
 .card:hover {
   border-color: blue; }
