@@ -1,16 +1,40 @@
+body {
+  padding: 30px; }
+
 header {
   text-align: center; }
   header img {
-    width: 20%; }
+    width: 40%;
+    padding: 20px;
+    min-width: 300px; }
 
 .card-title, .card-text {
   color: black; }
 
+.active {
+  font-weight: bold; }
+
 #sidebar {
   text-align: left; }
+  #sidebar #about {
+    margin-left: 0;
+    width: 100%; }
+
+#about {
+  width: 80%;
+  margin: auto; }
+
+#about::before {
+  content: "My name is Matthew Thomas, and I created this site for CSCI s33a. Looking through this site, you can learn a little more about me, what my interests are, and things I have learned over the past several years. These topics vary widely, from beer to computers, but each is a piece that is important to me."; }
+
+a {
+  color: teal; }
 
 .card {
   margin: 10px; }
+
+.card:hover {
+  border-color: teal; }
 
 @media (min-width: 768px) {
   #title::before {
@@ -21,16 +45,15 @@ header {
 a > img {
   width: 50px; }
 
+td, th {
+  padding: 5px;
+  min-width: 80px;
+  border-bottom: 1px solid black; }
+
 .beers, .programming {
-  column-width: 10px; }
-
-.beers {
-  background-color: blue; }
-
-.programming {
-  background: red; }
-
-.card:hover {
-  border-color: blue; }
+  border: 1px solid black;
+  width: 80%;
+  margin: auto;
+  border-collapse: collapse; }
 
 /*# sourceMappingURL=main.css.map */

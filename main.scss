@@ -1,25 +1,59 @@
-$color: red;
+// Add padding to the entire site
+body {
+    padding: 30px;
+}
+
+
+$color-theme: teal;
 
 header {
     text-align: center;
-
+    // padding: 10px;
     img {
-        width: 20%;
+        width: 40%;
+        padding: 20px;
+        min-width: 300px;
     }
 }
+
+
 
 .card-title, .card-text {
     color: black;
 }
+.active {
+    font-weight: bold;
+}
 
 #sidebar {
     text-align: left;
+
+    #about {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+#about {
+    width: 80%;
+    margin: auto;
+    // text-align: left;
+}
+#about::before {
+    content: "My name is Matthew Thomas, and I created this site for CSCI s33a. Looking through this site, you can learn a little more about me, what my interests are, and things I have learned over the past several years. These topics vary widely, from beer to computers, but each is a piece that is important to me."
+}
+
+a {
+    color: $color-theme;
 }
 
 .card {
-    // height: 500px;
     margin: 10px;
 }
+.card:hover {
+    border-color: $color-theme;
+}
+
 
 
 @media (min-width: 768px){
@@ -38,20 +72,28 @@ a > img {
     width: 50px;
 }
 
+// Styles for tables (on beers.html and programming.html)
+td, th {
+    padding: 5px;
+    min-width: 80px;
+    border-bottom: 1px solid black;
+}
+
 %table {
-    column-width: 10px;
+    // padding: 10px;
+    // margin: 10px;
+    border: 1px solid black;
+    width: 80%;
+    margin: auto;
+    border-collapse: collapse;
 }
 
 .beers {
     @extend %table;
-    background-color: blue;
+    // background-color: blue;
 
 }
 .programming {
         @extend %table;
-        background: red;
-}
-
-.card:hover {
-    border-color: blue;
+        // background: red;
 }
