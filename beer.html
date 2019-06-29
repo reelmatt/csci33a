@@ -9,27 +9,43 @@
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
 
         <link rel="stylesheet" href="main.css">
-        <title>My Webpage! - Beer</title>
+        <title>Matthew Thomas - Beer</title>
     </head>
     <body>
-        <div class="container">
+        <div class="container-fluid">
             <div class="row">
-                <div class="col-12 col-sm-5">
-                    <h1>Home</h1>
-                    <img src="images/me.jpg" width="30%">
-                    <p>My name is Matthew Thomas, and I created this site for CSCI s33a. Below, you can find more about my interests.</p>
-                    <nav class="nav flex-column">
+                <header id="sidebar" class="col-12 col-sm-5">
+                    <img src="images/me.jpg" alt="A picture of Matthew Thomas">
+                    <p class="card-text">My name is Matthew Thomas, and I created this site for CSCI s33a. Below, you can find more about my interests.</p>
+                    <nav class="nav flex-sm-column">
                         <a class="nav-link" href="./index.html">Home</a>
-                        <a class="nav-link active" href="./beer">Beer</a>
+                        <a class="nav-link active" href="./beer.html">Beer</a>
                         <a class="nav-link" href="./entertainment.html">Movies & TV</a>
                         <a class="nav-link" href="./programming.html">Programming</a>
                     </nav>
-
-                </div>
+                </header>
                 <div class="col-12 col-sm-7">
-                    <h1>Beer!</h1>
-                    <p>My name is Matthew Thomas, and I created this site for CSCI s33a. Below, you can find more about my interests.</p>
-                    <table>
+                    <h1>Beer</h1>
+                    <h3>Tastings</h3>
+                    <p>No one likes beer when they first try it. I was the same way when I turned 21. Even if you like some beer, you may have a hard time liking different styles. My palette isn't very sophisticated -- trying to pick out all the subtle flavors and intricies isn't why I like drinking beer -- but it has expanded from light beers to a wide variety of IPAs, hefeweizens, red and brown ales, and many more. Often each new style will bring some, "Eh, this doesn't really taste that great", to, "Ooo, this is actually quite good."</p>
+                    <p>Whenever I travel, one of my favorite things to do is visit a local brewery, see what's on tap, and try a flight of beers. Two destinations that had a smattering of great breweries were Portland, Maine and Denver, Colorado. Here's just a sample of some of the breweries I visited on my trips there.</p>
+                    <h5>Portland, Maine</h5>
+                    <ul>
+                        <li>Rising Tide</li>
+                        <li>Shipyard Brewing</li>
+                        <li>Liquid Riot</li>
+                    </ul>
+                    <h5>Denver, Colorado</h5>
+                    <ul>
+                        <li>Cerebral Brewing</li>
+                        <li>Great Divide Brewing</li>
+                        <li>New Belgium Brewing (Fort Collins, CO)</li>
+                    </ul>
+                    <h3>Homebrewing</h3>
+                    <p>Since 2015, shortly after graduation college and have some free time on my hands, I decided to get into homebrewing. With the boom in small craft- and micro-breweries, homebrewing has also been growing. After doing a lot of reserach, mainly reading the bible of homebrewing, <a href="http://www.howtobrew.com"><i>How to Brew</i> by John Palmer</a>, I swung by my local homebrew store, picked up the necessary equipment and ingredients, and got to work.</p>
+
+                    <p>Now, four years and twelve beers later, I've learned a lot, made some mistakes, as well as some truly tasty beers. The frequency with which I brew has decreased from when I started, but I try to make a habit of doing at least one new beer a year.</p>
+                    <table class="beers">
                         <thead>
                             <tr>
                                 <th>Label</th>
@@ -111,7 +127,7 @@
                                 <td>Farmhouse Ale - Saison</td>
                                 <td>5.3%</td>
                             </tr>
-                        </tbody>                        
+                        </tbody>
                     </table>
                 </div>
             </div>
