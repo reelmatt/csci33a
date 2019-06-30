@@ -3,12 +3,13 @@ body {
     padding: 30px;
 }
 
-
+// SCSS variable to use for site color theme
 $color-theme: teal;
 
+// SCSS nesting
 header {
     text-align: center;
-    // padding: 10px;
+
     img {
         width: 40%;
         padding: 20px;
@@ -16,15 +17,33 @@ header {
     }
 }
 
-
-
-.card-title, .card-text {
-    color: black;
-}
+// Indicate which page in the nav is currently shown
 .active {
     font-weight: bold;
 }
 
+// Style links with the site color theme
+a {
+    color: $color-theme;
+}
+
+// Use pseudoelement selector to include same about text on each page
+#about::before {
+    content: "My name is Matthew Thomas, and I created this site for CSCI\a
+    s33a. Looking through this site, you can learn a little more about me,\a
+    what my interests are, and things I have learned over the past several\a
+    years. These topics vary widely, from beer to computers, but each is a\a
+    piece that is important to me."
+}
+
+// Styling for about block on index.html
+#about {
+    width: 80%;
+    margin: auto;
+}
+
+// Styling for sidebar/about block for all subpages
+// Uses SCSS nesting
 #sidebar {
     text-align: left;
 
@@ -34,19 +53,7 @@ header {
     }
 }
 
-#about {
-    width: 80%;
-    margin: auto;
-    // text-align: left;
-}
-#about::before {
-    content: "My name is Matthew Thomas, and I created this site for CSCI s33a. Looking through this site, you can learn a little more about me, what my interests are, and things I have learned over the past several years. These topics vary widely, from beer to computers, but each is a piece that is important to me."
-}
-
-a {
-    color: $color-theme;
-}
-
+// Card styles on the index.html page
 .card {
     margin: 10px;
 }
@@ -54,46 +61,47 @@ a {
     border-color: $color-theme;
 }
 
+.card-title, .card-text {
+    color: black;
+}
 
-
+// Adjust title based on screen size
+// Modified from responsive1.html sample from CSCI 33a Lecture 1
 @media (min-width: 768px){
     #title::before {
         content: "Welcome to my site!";
     }
 }
-
 @media (max-width: 767px) {
     #title::before {
         content: "Welcome!";
     }
 }
 
-a > img {
-    width: 50px;
-}
-
 // Styles for tables (on beers.html and programming.html)
-td, th {
-    padding: 5px;
-    min-width: 80px;
-    border-bottom: 1px solid black;
-}
-
+// Uses SCSS inheritance
 %table {
-    // padding: 10px;
-    // margin: 10px;
     border: 1px solid black;
-    width: 80%;
     margin: auto;
     border-collapse: collapse;
 }
 
 .beers {
     @extend %table;
-    // background-color: blue;
-
+    width: 90%;
 }
 .programming {
-        @extend %table;
-        // background: red;
+    @extend %table;
+    width: 80%;
+}
+
+td, th {
+    padding: 5px;
+    min-width: 80px;
+    border-bottom: 1px solid black;
+}
+
+// Size the beer labels to be small
+a > img {
+    width: 50px;
 }
