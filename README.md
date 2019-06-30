@@ -14,6 +14,12 @@ can be located at the following URL:
 That page, and the three sub-pages, can all be navigated via links contained
 within the pages, as per the project spec.
 
+## Note about pull-request submission
+
+After following the instructions for Project 0 to create the pull request for submission, I proceed to hit the green "Merge branch" button. I then saw [this post in the discussion forum](https://us.edstem.org/courses/17/discussion/96) which said *not* to merge the branches. I attempted to revert the change and have the repository reflect the most up-to-date changes. I'm including a screenshot here to show you how things look on my end. Please let me know if there's any submission changes I need to make on my end.
+
+<img src="submission.png">
+
 ## index.html
 The homepage for the site features a small blurb about myself/the site,
 followed by three cards at the bottom, linking to different interests I have.
