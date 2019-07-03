@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, session
+from flask import Flask, session, render_template, request
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -20,7 +20,30 @@ Session(app)
 engine = create_engine(os.getenv("DATABASE_URL"))
 db = scoped_session(sessionmaker(bind=engine))
 
-
+# Home page
 @app.route("/")
 def index():
-    return "Project 1: TODO"
+    return render_template("index.html")
+
+# Display all books (will/will not be used?)
+@app.route("/books")
+def books():
+    return render_template("book.html")
+
+# Individual book page
+@app.route("/books/<int:isbn>")
+def book(isbn):
+    print(f"The isbn is {isbn}")
+    return render_template("book.html", name="Name goes here")
+
+# Search route - translate "name" into ISBN to return book
+@app.route("/search", methods=["POST"])
+def search():
+    name = request.form.get("name")
+    isbn = 123
+    return redirect(url_for('book', isbn=isbn))
+
+# User login
+@app.route("/login")
+def login():
+    return render_template("index.html")
