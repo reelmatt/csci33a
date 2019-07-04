@@ -31,15 +31,24 @@ def books():
     return render_template("book.html")
 
 # Individual book page
-@app.route("/books/<int:isbn>")
+@app.route("/books/<string:isbn>")
 def book(isbn):
     print(f"The isbn is {isbn}")
-    return render_template("book.html", name="Name goes here")
+    book = db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn": isbn}).fetchone()
+    # books = db.execute("SELECT * FROM books LIMIT 5").fetchall()
+
+    if book is None:
+        print("Book does not exist!")
+    else:
+        print(book)
+
+
+    return render_template("book.html", book=book)
 
 # Search route - translate "name" into ISBN to return book
 @app.route("/search", methods=["POST"])
 def search():
-    name = request.form.get("name")
+    query = request.form.get("query")
     isbn = 123
     return redirect(url_for('book', isbn=isbn))
 

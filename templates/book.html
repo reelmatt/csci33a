@@ -3,18 +3,23 @@
 {% block body %}
 
 <div class="row">
+  <section>
+
+
   <h1>Book page  {{name}}</h1>
 
-  <h2>Title: title</h2>
-  <p>Author: author</p>
-  <p>Publication Year: year</p>
-  <p>ISBN: isbn</p>
+  <h2>Title: {{book.title}}</h2>
+  <p>Author: {{book.author}}</p>
+  <p>Publication Year: {{book.year}}</p>
+  <p>ISBN: {{book.isbn}}</p>
   <p>User Reviews: reviews</p>
 
   <form>
     <input type="text">
     <button type="button" name="button">Submit</button>
   </form>
+
+  </section>
 </div>
 
 <div class="row">
