@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+<div class="row">
+  <section>
+    <ul>
+    {% for book in books %}
+        <li><a href='/books/{{book.isbn}}'>Book: {{book.title}}</a></li>
+    {% endfor %}
+    </ul>
+  </section>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <p>Column 1</p>
+    </div>
+    <div class="col-md-4">
+        <p>Column 2</p>
+    </div>
+    <div class="col-md-4">
+        <p>Column 3</p>
+    </div>
+</div>
+
+{% endblock body %}
