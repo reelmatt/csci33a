@@ -13,10 +13,18 @@
   <p>Publication Year: {{book.year}}</p>
   <p>ISBN: {{book.isbn}}</p>
   <p>User Reviews: reviews</p>
+  {% for review in reviews %}
+      <p>User {{review.user_id}} said: {{review.review}}</p>
+  {% endfor %}
 
-  <form>
-    <input type="text">
-    <button type="button" name="button">Submit</button>
+
+
+  <form method="POST" action="">
+    <div class="form-group">
+        <label for="review">Review:</label>
+        <input type="text" class="form-control" name="review" id="review">
+      </div>
+      <button type="submit" class="btn btn-primary">Submit review</button>
   </form>
 
   </section>
