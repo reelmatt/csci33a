@@ -3,10 +3,10 @@
 {% block body %}
 
 <div class="row">
-  <section>
+  <section class="listing">
     <ul>
     {% for book in books %}
-        <li><a href='/books/{{book.isbn}}'>Book: {{book.title}}</a></li>
+        <li><a href='/books/{{book.id}}'>{{book.title}}</a> by {{book.author}}</li>
     {% endfor %}
     </ul>
   </section>
