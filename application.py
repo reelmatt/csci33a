@@ -26,7 +26,7 @@ def index():
     user = session.get("user_id")
 
     print(f"User logged in is ID: {user}")
-    return render_template("index.html", user=user)
+    return render_template("index.html", user=get_user())
 
 # Display all books (will/will not be used?)
 # @app.route("/books")
@@ -51,7 +51,21 @@ def book(book_id):
         print(book)
         print(f"There are {len(reviews)} reviews.")
 
-    return render_template("book.html", book=book, reviews=reviews)
+    return render_template("book.html", book=book, reviews=reviews, user=session.get("user_id"))
+
+def get_user():
+    user = {
+        "id": session.get("user_id"),
+        "name": session.get("user_name")
+    }
+    print(user)
+    if user.get("id") == None and user.get("name") == None:
+        return None
+    else:
+        return user
+
+def get_title(item):
+    return item["title"]
 
 # Search route - translate "name" into ISBN to return book
 @app.route("/search", methods=["POST"])
@@ -67,9 +81,11 @@ def search():
     print(f"The search returned {num_found} books. Redirecting...")
 
     if num_found > 1:
-        return render_template('books.html', books = books)
+        books.sort(key=get_title)
+        # sorted(books, key=get_title())
+        return render_template('books.html', books = books, user=session.get("user_id"))
     elif num_found is 1:
-        return render_template('book.html', book = books[0])
+        return render_template('book.html', book = books[0], user=session.get("user_id"))
     else:
         return page_not_found("No books found.")
         # return redirect(url_for('error', message="No books found."))
@@ -84,16 +100,17 @@ def search():
 # http://flask.pocoo.org/docs/1.0/patterns/errorpages/
 @app.errorhandler(404)
 def page_not_found(message):
-    return render_template("404.html", error=message), 404
+    return render_template("404.html", error=message, user=session.get("user_id")), 404
+
 
 @app.route("/404")
 def error(message):
-    return render_template("404.html", error=message)
+    return render_template("404.html", error=message, user=session.get("user_id"))
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "GET":
-        return render_template("register.html")
+        return render_template("register.html", user=session.get("user_id"))
 
     cmd = "INSERT INTO users (username, password) VALUES (:username, :password)"
 
@@ -115,13 +132,14 @@ def register():
 @app.route("/logout")
 def logout():
     session["user_id"] = None
+    session["user_name"] = None
     return redirect(url_for('index'))
 
 # User login
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
-        return render_template("login.html")
+        return render_template("login.html", user=session.get("user_id"))
 
 
     username = request.form.get("username")
@@ -131,8 +149,9 @@ def login():
 
 
     if user is None:
-        return render_template("login.html", error="Failed to log in. Try again.")
+        return render_template("login.html", error="Failed to log in. Try again.", user=session.get("user_id"))
     else:
         print(f"User id is {user.id} and name is {user.username}")
         session["user_id"] = user.id
+        session["user_name"] = user.username
         return redirect(url_for('index'))
