@@ -2,4 +2,4 @@
 .env
 __pycache__/
 flask_session/
-static/open_iconic/
+static/open-iconic/
