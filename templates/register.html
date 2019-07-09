@@ -2,6 +2,7 @@
 
 {% block body %}
 
+
 <form method="POST" action="/register">
   <div class="form-group">
       <label for="name">Your name</label>
@@ -18,4 +19,5 @@
   <button type="submit" class="btn btn-primary">Create your account</button>
 </form>
 <p>Already have an account? <a href="{{ url_for('login') }}">Sign in.</a></p>
+
 {% endblock body %}
