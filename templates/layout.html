@@ -26,6 +26,9 @@
     {% include "includes/nav.html" %}
   </header>
   <main class="container-fluid">
+      {% if error %}
+          <p class="alert alert-danger" role="alert">{{error}}</p>
+      {% endif %}
     {% block body %}
     {% endblock %}
   </main>
