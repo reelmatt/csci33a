@@ -3,21 +3,19 @@
 {% block body %}
 
 <div class="row">
-  <section class="listing">
-      <h3>Your search returned {{books|length}} results.</h3>
-    <ul>
-    {% for book in books %}
-    <a href="/books/{{book.id}}" class="card-link">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">{{book.title}}</h5>
-                <h6 class="card-subtitle mb-2 text-muted">by {{book.author}}</h6>
-            </div>
-        </div>
-    </a>
-    {% endfor %}
-    </ul>
-  </section>
+    <section class="listing">
+        <h3>Your search returned {{books|length}} results.</h3>
+            {% for book in books %}
+            <a href="/books/{{book.id}}" class="card-link">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{book.title}}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">by {{book.author}}</h6>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+    </section>
 </div>
 
 {% endblock body %}

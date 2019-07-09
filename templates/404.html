@@ -2,10 +2,10 @@
 
 {% block body %}
 
-<h1>404 Not Found!</h1>
+<h1>404 Not Found</h1>
 <h3>
-  {% if error %}
-    {{ error }}
+  {% if message %}
+    {{ message }}
   {% else %}
     Page could not be found. Please go back and try again!
   {% endif %}
