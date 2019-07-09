@@ -1,3 +1,11 @@
+###############################################################################
+# import.py
+# Project 1, written by Matthew Thomas
+#
+# Starter code provided by CSCI s33a team, in import.py from Lecture 3. Most of
+# the code has been unmodified, save for differences in table column names seen
+# in the for loop.
+###############################################################################
 import csv
 import os
 
@@ -7,45 +15,33 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 engine = create_engine(os.getenv("DATABASE_URL"))
 db = scoped_session(sessionmaker(bind=engine))
 
-# Check table existence in case 'books' has already been made
-# https://www.pythonsheets.com/notes/python-sqlalchemy.html
-tableCreated = False
-ins = inspect(engine)
-for _t in ins.get_table_names():
-    print(_t)
-    if _t == "books":
-        tableCreated = True
-
-if tableCreated == False:
-    print("Creating table books...")
-    db.execute("CREATE TABLE books ("
-        "id SERIAL PRIMARY KEY, "
-        "isbn VARCHAR UNIQUE NOT NULL, "
-        "title VARCHAR NOT NULL, "
-        "author VARCHAR, "
-        "year INTEGER"
-    ")")
-    print("...Added table")
-
-# For get index in a for..in loop
-# https://treyhunner.com/2016/04/how-to-loop-with-indexes-in-python/
-# https://www.pitt.edu/~naraehan/python3/more_on_for_loops.html
+# Read 'books.csv' into the 'books' database table
 def main():
+    # Open csv file
     f = open("books.csv")
-    titleRead = False
     reader = csv.reader(f)
 
+    # Keep track of books added, and if title row has been read
+    titleRead = False
+    books_added = 0
+
+    # Loop through each entry in books.csv and add to database
     for isbn, title, author, year in reader:
+        # Skip the first row with header names
         if titleRead is False:
             titleRead = True
-            print("Starting import, skip the titles")
-            print(f"{isbn}")
+            print("Starting books.csv import...")
             continue
 
-        db.execute("INSERT INTO books (isbn, title, author, year) VALUES (:isbn, :title, :author, :year)",
-                    {"isbn": isbn, "title": title, "author": author, "year": year})
-        print(f"Added book {title} by {author}.")
+        db.execute("INSERT INTO books (isbn, title, author, year) "
+                   "VALUES (:isbn, :title, :author, :year)",
+                   {"isbn": isbn, "title": title, "author": author, "year": year})
+        books_added++
+
     db.commit()
+
+    # Log the results
+    print(f"Finished! There were {books_added} books added.")
 
 if __name__ == "__main__":
     main()
