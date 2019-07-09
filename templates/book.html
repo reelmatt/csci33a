@@ -3,42 +3,36 @@
 {% block body %}
 
 <div class="row">
-  <section>
-
-
-  <h1>Book page  {{name}}</h1>
-
-  <h2>Title: {{book.title}}</h2>
-  <p>Author: {{book.author}}</p>
-  <p>Publication Year: {{book.year}}</p>
-  <p>ISBN: {{book.isbn}}</p>
-  <p>User Reviews: reviews</p>
-  {% for review in reviews %}
-      <p>User {{review.user_id}} said: {{review.review}}</p>
-  {% endfor %}
-
-
-
-  <form method="POST" action="">
-    <div class="form-group">
-        <label for="review">Review:</label>
-        <input type="text" class="form-control" name="review" id="review">
-      </div>
-      <button type="submit" class="btn btn-primary">Submit review</button>
-  </form>
-
-  </section>
-</div>
-
-<div class="row">
     <div class="col-md-4">
-        <p>Column 1</p>
+        <h2>{{book.title}}</h2>
+        <p>by {{book.author}}</p>
+        <p>Published {{book.year}}</p>
+        <p>Goodreads Rating: stars</p>
+        <p>ISBN: {{book.isbn}}</p>
     </div>
-    <div class="col-md-4">
-        <p>Column 2</p>
-    </div>
-    <div class="col-md-4">
-        <p>Column 3</p>
+    <div class="col-md-8">
+        <h2>My Book Site User's Reviews</h2>
+        {% for review in reviews %}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">User {{review.user_id}} said:</h5>
+                    <p class="card-text">{{review.review}}</p>
+                    {% if review.user_id == user.id %}
+                        <a href="{{request.path}}/edit" class="card-link">Edit review</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+
+        {% if not user_reviewed %}
+        <form method="POST" action="/books/{{book.id}}">
+          <div class="form-group">
+              <label for="review">Review:</label>
+              <input type="text" class="form-control" name="review" id="review">
+            </div>
+            <button type="submit" class="btn btn-primary">Submit review</button>
+        </form>
+        {% endif %}
     </div>
 </div>
 
