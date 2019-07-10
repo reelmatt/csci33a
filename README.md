@@ -16,7 +16,7 @@ For the application to run, the following environment variables must be set:
 # Database design
 I created my database tables through the CS50 Adminer interface, running raw
 SQL commands. The table columns/data types are described below, but a copy of
-the commands can be found in the create.sql file.
+the commands can be found in the [create.sql][./create.sql] file.
 
 ### books
 column name | data type
