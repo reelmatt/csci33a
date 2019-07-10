@@ -8,6 +8,7 @@ Lecture 4 to call to the Goodreads API.
 
 # Environment Variables
 For the application to run, the following environment variables must be set:
+
     + FLASK_APP=application.py
     + DATABASE_URL=[URI_obtained_from_heroku]
     + GOODREADS_KEY=[key_obtained_from_goodreads]
@@ -19,7 +20,7 @@ the commands can be found in the create.sql file.
 
 ### books
 column name | data type
------------------------
+------------|---------------------------
 id          | SERIAL, PRIMARY KEY
 isbn        | VARCHAR, UNIQUE, NOT NULL
 title       | VARCHAR, NOT NULL
@@ -27,8 +28,8 @@ author      | VARCHAR, NOT NULL
 year        | INTEGER, NOT NULL
 
 ### reviews
-column name | data type           | references
-------------|---------------------|------------
+column name | data type           | references table
+------------|---------------------|-----------------
 id          | SERIAL, PRIMARY KEY |
 book_id     | INTEGER, NOT NULL   | books
 user_id     | INTEGER, NOT NULL   | users
@@ -36,7 +37,7 @@ review      | TEXT, NOT NULL      |
 
 ### users
 column name | data type
------------------------
+------------|---------------------------
 id          | SERIAL, PRIMARY KEY
 name        | VARCHAR, NOT NULL
 username    | VARCHAR, UNIQUE, NOT NULL
@@ -62,19 +63,20 @@ assignment.
     book. Users are still only allowed to leave one review per book.
 
 # Files
-+ application.py
-+ import.py
-+ books.csv
++ application.py - main application code
++ import.py - import script to add the 5,000 entries from books.csv to database
++ books.csv - course-provided dataset
 + static/
     + styles.scss - Custom styles added in addition to Bootstrap; compiled down
       to styles.css using the SASS CLI.
 + templates/
     + 404.html - Used to display a 404 error with page_not_found() method.
-    + book.html - Displays an individual book's info and any user reviews.
+    + book.html - Displays an individual book's info and any user reviews. Also
+        contains form to submit a review if the user hasn't already.
     + books.html - Displays a list of all books returned for a search with links
         to the individual book page.
-    + edit_review.html - Form containing a user's existing review to all them to
-        update and re-submit.
+    + edit_review.html - Form containing a user's existing review to allow them
+        to update and re-submit.
     + index.html - Home page for the site. Gives a welcome message and how to
         use the site.
     + layout.html - The main layout template that is extended by all the pages.
