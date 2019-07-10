@@ -254,8 +254,8 @@ def search():
     # Retrieve the user's search query
     query = request.form.get("query")
 
-    # If no search query, return error message
-    if not query:
+    # If no search query, or blank query, return error message
+    if not query or query.isspace():
         message = "Please enter a search term."
         return render_template("index.html", error=message, user=user)
 
@@ -280,11 +280,11 @@ def search():
 
     # Route the user to all results, specific book, or error
     if num_found > 1:
-        return render_template('books.html', books=books, user=user)
+        return render_template('books.html', books=books, user=user, query=query)
     elif num_found is 1:
         return redirect(url_for('book', book_id=books[0]["id"]))
     else:
-        return page_not_found("No books found.")
+        return page_not_found(f"You searched for '{query}'. No books found.")
 
 ###############################################################################
 # Helper methods
