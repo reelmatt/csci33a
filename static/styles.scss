@@ -15,16 +15,18 @@ nav.navbar-light {
 
 #book-info {
     margin-bottom: 1em;
+
+    p {
+        padding: 0;
+        margin: 0;
+        width: 80%;
+    }
 }
 
-#book-info > p {
-    padding: 0;
-    margin: 0;
-    width: 80%;
-}
-
-#book-reviews > .card{
-    border: none;
+#book-reviews {
+    .card{
+        border: none;
+    }
 }
 
 .listing {

@@ -4,7 +4,7 @@
 
 <div class="row">
     <section class="listing">
-        <h3>Your search returned {{books|length}} results.</h3>
+        <h3>Your search for '{{ query }}' returned {{books|length}} results.</h3>
             {% for book in books %}
             <a href="/books/{{book.id}}" class="card-link">
                 <div class="card">
