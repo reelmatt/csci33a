@@ -1,0 +1,5 @@
+.DS_Store
+.env
+__pycache__/
+flask_session/
+static/.sass-cache/
