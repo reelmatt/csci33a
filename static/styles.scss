@@ -1,0 +1,39 @@
+aside {
+    background-color: lightblue;
+    // padding-bottom: 100%;
+}
+
+
+footer {
+    background-color: lightgreen;
+    position: fixed;
+    bottom: 0;
+}
+
+main {
+    // margin-bottom: 600px;
+    // padding-bottom: 500px;
+}
+
+#createChannel:hover {
+    text-decoration: none;
+    // border: 1px solid blue;
+    // border-radius: 15px;
+    // padding: 0 2 0 2;
+}
+
+#messageContents {
+    width: 80%;
+    // padding-right: 1em;
+}
+
+#enterDisplayName {
+    padding: auto;
+}
+
+// Style copied from CSCI s-33a course site
+@media (min-width: 768px) {
+    aside.col-md {
+        flex: 0 1 20rem;
+    }
+}

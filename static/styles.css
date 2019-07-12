@@ -1,0 +1,22 @@
+aside {
+  background-color: lightblue; }
+
+footer {
+  background-color: lightgreen;
+  position: fixed;
+  bottom: 0; }
+
+#createChannel:hover {
+  text-decoration: none; }
+
+#messageContents {
+  width: 80%; }
+
+#enterDisplayName {
+  padding: auto; }
+
+@media (min-width: 768px) {
+  aside.col-md {
+    flex: 0 1 20rem; } }
+
+/*# sourceMappingURL=styles.css.map */
