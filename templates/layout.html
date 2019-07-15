@@ -32,8 +32,14 @@
                 <section>
                     <h3>Channels</h3>
                     <ul id="channels">
+                        {% for channel in channels %}
+                            <li><button class="channel">{{channel.selection}}</button></li>
+                        {% endfor %}
                     </ul>
-                    <form id="channelNameForm">
+                    <div class="alert alert-danger" role="alert" id="channelError">
+                      
+                    </div>
+                    <form id="channelNameForm" autocomplete=off>
                         <div class="form-group">
                             <input type="text" id="channelName" required placeholder="Channel name">
                         </div>
@@ -55,8 +61,12 @@
                     <div class="row">
                         <div class="col">
                             <footer class="message">
-                                <input type="text" id="messageContents">
-                                <button type="submit" class="btn btn-primary">Send</button>
+                                <form id="messageForm" autocomplete=off>
+                                    <div class="form-group">
+                                        <input type="text" id="messageContents">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Send</button>
+                                </form>
                             </footer>
                         </div>
                     </div>
