@@ -1,18 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    localStorage.removeItem('channel')
 
+
+    // If no user stored locally, present form for them to register
     if (!localStorage.getItem('user')) {
         console.log("no users...");
-        document.querySelector('#enterDisplayName').style.visibility = "visible";
+        document.querySelector('#enterDisplayName').style.display = "inherit";
     } else {
         console.log(`Any users? ${localStorage.getItem('displayName')}`);
-        document.querySelector('#enterDisplayName').style.visibility = "hidden";
+        document.querySelector('#enterDisplayName').style.display = "none";
     }
 
-
-
-
-
+    document.getElementById('channelError').style.display = "none";
     // Connect to websocket
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelector('#channelNameForm').onsubmit = () => {
             console.log("IN CHANNEL NAME FORMMMMMMMM!");
             // Initialize new request
+
             const request = new XMLHttpRequest();
             const channel = document.getElementById('channelName').value;
             console.log(`Channel name entered is ${channel}`);
@@ -51,11 +52,46 @@ document.addEventListener('DOMContentLoaded', () => {
             data.append('channel', channel);
             console.log("sending data");
             console.log(data);
+            localStorage.setItem('channel', channel);
             // Send request
             request.send(data);
+            document.getElementById('channelError').style.display = "none";
+            document.getElementById('channelError').innerText = '';
+
             return false;
         };
 
+        document.querySelector('#messageForm').onsubmit = () => {
+                const text = document.getElementById('messageContents').value;
+                socket.emit('send message', {'text': text, 'channel': localStorage.getItem('channel')});
+
+                return false;
+        };
+
+    });
+
+    socket.on('channel error', message => {
+        document.getElementById('channelError').innerText = message;
+        document.getElementById('channelError').style.display = "inherit";
+    });
+
+    socket.on('receive message', text => {
+            console.log("RECEIVING MESSAGE: " + text);
+            const li = document.createElement('li');
+            li.innerHTML = text;
+            document.querySelector("#messageList").append(li);
+    });
+
+    socket.on('load messages', data => {
+        document.getElementById('messageList').innerHTML = '';
+        let list = document.getElementById('messageList');
+        console.log(data["messages"]);
+
+        data["messages"].forEach(message => {
+            const li = document.createElement('li');
+            li.innerHTML = message;
+            list.appendChild(li);
+        });
     });
 
     socket.on('channel list', data => {
@@ -67,17 +103,13 @@ document.addEventListener('DOMContentLoaded', () => {
         button.setAttribute('class', 'channel');
         button.innerText = data.selection;
         button.onclick = () => {
-
+            localStorage.setItem('channel', data.selection);
             socket.emit('load channel', {'name': data.selection});
         };
-        
+
         li.appendChild(button);
-
         console.log(li);
-
         document.querySelector("#channels").append(li);
-
-        // document.querySelector("#channels").innerHTML = data;
     });
 
     // By default, submit button is disabled
@@ -90,7 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
         else
             document.querySelector('#displayNameSubmit').disabled = true;
     };
-
 
     document.querySelector('#displayNameForm').onsubmit = () => {
         console.log("Showing up here...");
@@ -106,9 +137,4 @@ document.addEventListener('DOMContentLoaded', () => {
         // Stop form from submitting
         return false;
     };
-
-
-
-
-    console.log("After everything...");
 });

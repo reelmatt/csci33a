@@ -7,13 +7,17 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 socketio = SocketIO(app)
 
+channels = {}
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    # messages = channels["channel"]["messages"]
+    # print(f"Found messages for {channel}. They are...")
+    # print({messages})
+    return render_template("index.html", channels=channels.keys())
 
 
-channels = []
+
 
 
 @app.route("/create", methods=["POST"])
@@ -28,12 +32,55 @@ def create():
 
 @socketio.on("create channel")
 def create_channel(new_channel):
-    print(f"In python, create_channel, data is {new_channel}")
-    channels.append(new_channel)
+    name = new_channel["selection"]
+    print(f"In python, create_channel, data is {name}")
     print(channels)
-    emit("channel list", new_channel, broadcast=True)
+    if name in channels:
+        message = "Sorry, that channel has already been created. Try another."
+        print(message)
+        emit("channel error", message, broadcast=False)
+    else:
+        channels[name] = []
+        # channel = {
+        #     "name": name,
+        #     "messages": []
+        # }
+        # print(channel)
+        # channels.append(channel)
+        print(channels)
+        emit("channel list", new_channel, broadcast=True)
+
+
 
 @socketio.on("load channel")
-def load_channel(channel):
-    print(f"In load_channel, name of {channel}.");
-    
+def load_channel(data):
+    channel = data["name"]
+    print(f"In load_channel, name of {channel}.")
+    print(f"\n\n\nAll channels are currently")
+    print(channels)
+    messages = channels[channel]
+    # messages = channels.get(channel)
+    print(f"Found {len(messages)} messages for {channel}. They are...")
+    print({messages[0]})
+    emit("load messages", {"channel": channel, "messages": messages}, broadcast=False)
+
+
+
+@socketio.on("send message")
+def send_message(data):
+    text = data['text']
+    channel = data['channel']
+    print(f"Text of message is {text}")
+    print(f"Channel is sent to is {channel}")
+
+
+    # channels[channel].extend(text)
+
+    print(f"ADDED TO CHANNEL...\n\n\n\n")
+    print(channels)
+    print(channels[channel])
+    channels[channel].append(text)
+    messages = channels[channel]
+    print(f"There are currently {len(messages)} messages.")
+
+    emit("receive message", data['text'], broadcast=True)
