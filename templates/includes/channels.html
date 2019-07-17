@@ -1,0 +1,19 @@
+<section>
+    <h3>Channels</h3>
+    <ul id="channels">
+        {% for channel in channels %}
+            <li><button class="channel" name="{{channel}}">{{channel}}</button></li>
+        {% endfor %}
+    </ul>
+    <div class="alert alert-danger" role="alert" id="channelError">
+
+    </div>
+    <form id="channelNameForm" autocomplete=off>
+        <div class="form-group">
+            <input type="text" id="channelName" required placeholder="Channel name">
+        </div>
+        <button type="submit" class="btn btn-success" id="createChannel" data-vote="Temp value" value="Other value here">+</button>
+
+    </form>
+
+</section>

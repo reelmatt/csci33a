@@ -1,23 +1,8 @@
 {% extends "layout.html" %}
 
 {% block body %}
-<section id="enterDisplayName">
-    <form id="displayNameForm">
-        <div class="form-group">
-            <label for="displayName">Display name</label>
-            <input type="text" class="form-control" id="displayName" placeholder="Enter display name">
-        </div>
-        <button type="submit" id="displayNameSubmit" class="btn btn-primary">Submit</button>
-    </form>
-</section>
-<section id="messages">
-    <ul id="messageList">
-        {% for message in messages %}
-            <li>{{message}}</li>
-        {% endfor %}
-    </ul>
 
-</section>
+
 
 
 {% endblock body %}

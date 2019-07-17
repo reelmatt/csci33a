@@ -7,67 +7,78 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!localStorage.getItem('user')) {
         console.log("no users...");
         document.querySelector('#enterDisplayName').style.display = "inherit";
+
+        // By default, submit button is disabled
+        document.querySelector('#displayNameSubmit').disabled = true;
+
+        // Enable button only if there is text in the input field
+        document.querySelector('#displayName').onkeyup = () => {
+            if (document.querySelector('#displayName').value.length > 0)
+                document.querySelector('#displayNameSubmit').disabled = false;
+            else
+                document.querySelector('#displayNameSubmit').disabled = true;
+        };
+
+        document.querySelector('#displayNameForm').onsubmit = () => {
+            console.log("Showing up here...");
+
+            let name = document.querySelector("#displayName").value;
+
+            localStorage.setItem('user', name);
+
+            console.log(`Entered display name of ${name}`);
+            document.querySelector('#enterDisplayName').remove();
+
+
+            // Stop form from submitting
+            return false;
+        };
     } else {
         console.log(`Any users? ${localStorage.getItem('displayName')}`);
-        document.querySelector('#enterDisplayName').style.display = "none";
+        document.querySelector('#enterDisplayName').remove();
     }
 
     document.getElementById('channelError').style.display = "none";
+
+
     // Connect to websocket
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
     // When connected, configure buttons
     socket.on('connect', () => {
         document.querySelector('#channelNameForm').onsubmit = () => {
-            console.log("IN CHANNEL NAME FORMMMMMMMM!");
-            // Initialize new request
-
-            const request = new XMLHttpRequest();
             const channel = document.getElementById('channelName').value;
-            console.log(`Channel name entered is ${channel}`);
-            request.open('POST', '/create');
-            console.log("opened request");
-            // Callback function for when request completes
-            request.onload = () => {
-                console.log("in .onload() portion, data is...");
-                // Extract JSON data from request
-                const data = JSON.parse(request.responseText);
 
-                console.log(data);
-                // Update the result div
-                if (data.success) {
-                    const contents = data.channel;
-                    console.log("contents are " + contents);
-                    socket.emit('create channel', {'selection': contents});
-                    console.log("EMITTED socket");
-                    document.getElementById('channelName').value = '';
-                }
-                else {
-                    document.querySelector('#channels').innerHTML = 'There was an error.';
-                }
-            }
+            socket.emit('create channel', {'name': channel});
 
-            // Add data to send with request
-            const data = new FormData();
-            data.append('channel', channel);
-            console.log("sending data");
-            console.log(data);
-            localStorage.setItem('channel', channel);
-            // Send request
-            request.send(data);
             document.getElementById('channelError').style.display = "none";
             document.getElementById('channelError').innerText = '';
-
+            document.getElementById('channelName').value = '';
             return false;
         };
 
         document.querySelector('#messageForm').onsubmit = () => {
                 const text = document.getElementById('messageContents').value;
-                socket.emit('send message', {'text': text, 'channel': localStorage.getItem('channel')});
-
+                const now = new Date();
+                socket.emit('send message', {
+                    'text': text,
+                    'user': localStorage.getItem('user'),
+                    'time': now.toLocaleString('en-US', {timeZone: 'EST'}),
+                    'channel': localStorage.getItem('channel')
+                });
+                document.getElementById('messageContents').value = '';
                 return false;
         };
 
+        // Each button should emit a "submit vote" event
+        document.querySelectorAll('button.channel').forEach(button => {
+            console.log("button name is " + button.name);
+            button.onclick = () => {
+                localStorage.setItem('channel', button.name);
+                document.getElementById('channelHead').innerText = button.name;
+                socket.emit('load channel', button.name);
+            };
+        });
     });
 
     socket.on('channel error', message => {
@@ -75,36 +86,49 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('channelError').style.display = "inherit";
     });
 
-    socket.on('receive message', text => {
-            console.log("RECEIVING MESSAGE: " + text);
+    socket.on('receive message', message => {
+            console.log("RECEIVING MESSAGE: ");
+            console.log(message);
+            if (message.channel !== localStorage.getItem('channel')) {
+                return;
+            }
+
             const li = document.createElement('li');
-            li.innerHTML = text;
+            li.innerHTML = message.text + ' sent by ' + message.user + ' at ' + message.time;
             document.querySelector("#messageList").append(li);
     });
 
     socket.on('load messages', data => {
+        console.log("Loading messages....");
+        // localStorage.setItem('channel', data.channel);
         document.getElementById('messageList').innerHTML = '';
         let list = document.getElementById('messageList');
         console.log(data["messages"]);
+        if (data["messages"]) {
+            data["messages"].forEach(message => {
+                const li = document.createElement('li');
+                li.innerHTML = message.text + ' sent by ' + message.user + ' at ' + message.time;
+                list.appendChild(li);
+            });
+        }
 
-        data["messages"].forEach(message => {
-            const li = document.createElement('li');
-            li.innerHTML = message;
-            list.appendChild(li);
-        });
     });
 
     socket.on('channel list', data => {
         console.log("Appending to channel list...");
-        console.log(data);
+        console.log(data.channel);
+        document.getElementById('channelHead').innerText = data.channel;
+        localStorage.setItem('channel', data.channel);
         const li = document.createElement('li');
         const button = document.createElement('button');
-
+        document.getElementById('messageList').innerHTML = '';
         button.setAttribute('class', 'channel');
-        button.innerText = data.selection;
+        button.innerText = data.channel;
         button.onclick = () => {
-            localStorage.setItem('channel', data.selection);
-            socket.emit('load channel', {'name': data.selection});
+            console.log("ON CLICK TRIGGER!!");
+            document.getElementById('channelHead').innerHTML = data.channel;
+            localStorage.setItem('channel', data.channel);
+            socket.emit('load channel', data.channel);
         };
 
         li.appendChild(button);
@@ -112,29 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelector("#channels").append(li);
     });
 
-    // By default, submit button is disabled
-    document.querySelector('#displayNameSubmit').disabled = true;
-
-    // Enable button only if there is text in the input field
-    document.querySelector('#displayName').onkeyup = () => {
-        if (document.querySelector('#displayName').value.length > 0)
-            document.querySelector('#displayNameSubmit').disabled = false;
-        else
-            document.querySelector('#displayNameSubmit').disabled = true;
-    };
-
-    document.querySelector('#displayNameForm').onsubmit = () => {
-        console.log("Showing up here...");
-
-        let name = document.querySelector("#displayName").value;
-
-        localStorage.setItem('user', name);
-
-        console.log(`Entered display name of ${name}`);
-        document.querySelector('#enterDisplayName').style.visibility = "hidden";
 
 
-        // Stop form from submitting
-        return false;
-    };
+
 });
