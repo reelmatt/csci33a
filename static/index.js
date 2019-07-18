@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     localStorage.removeItem('channel')
-
+    const message_template = Handlebars.compile(document.querySelector('#message').innerHTML);
 
     // If no user stored locally, present form for them to register
     if (!localStorage.getItem('user')) {
@@ -92,23 +92,28 @@ document.addEventListener('DOMContentLoaded', () => {
             if (message.channel !== localStorage.getItem('channel')) {
                 return;
             }
-
-            const li = document.createElement('li');
-            li.innerHTML = message.text + ' sent by ' + message.user + ' at ' + message.time;
-            document.querySelector("#messageList").append(li);
+            const temp = message_template({'message': message});
+            console.log(temp);
+            // const li = document.createElement('li');
+            // li.innerHTML = message.text + ' sent by ' + message.user + ' at ' + message.time;
+            document.querySelector("#messageList").innerHTML += temp;
     });
 
     socket.on('load messages', data => {
         console.log("Loading messages....");
+
+
         // localStorage.setItem('channel', data.channel);
         document.getElementById('messageList').innerHTML = '';
         let list = document.getElementById('messageList');
         console.log(data["messages"]);
         if (data["messages"]) {
             data["messages"].forEach(message => {
-                const li = document.createElement('li');
-                li.innerHTML = message.text + ' sent by ' + message.user + ' at ' + message.time;
-                list.appendChild(li);
+                const temp = message_template({'message': data});
+                console.log(temp);
+                // const li = document.createElement('li');
+                // li.innerHTML = message.text + ' sent by ' + message.user + ' at ' + message.time;
+                list.innerHTML += temp;
             });
         }
 

@@ -15,6 +15,15 @@
     <!-- Handlebars -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.11/handlebars.min.js"></script>
 
+    <script id="message" type="text/x-handlebars-template">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">{% raw -%}{{message.user}}{%- endraw %}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">{% raw -%}Sent {{message.time}}{%- endraw %}</h6>
+            <p class="card-text">{% raw -%}{{message.text}}{%- endraw %}</p>
+          </div>
+        </div>
+    </script>
 
     <!-- My stylesheet -->
     <link rel="stylesheet" href="/static/styles.css">
