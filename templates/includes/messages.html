@@ -1,7 +1,11 @@
 <section id="messages">
+    <!-- If a duplicate channel is entered, error message will appear here -->
+    <div class="alert alert-danger" role="alert" id="messageError"></div>
+
     <ul id="messageList">
-        {% for message in messages %}
+        <p>Please select a channel, or create a new one, to send and receive messages.</p>
+        <!-- {% for message in messages %}
             <li>{{message}}</li>
-        {% endfor %}
+        {% endfor %} -->
     </ul>
 </section>
