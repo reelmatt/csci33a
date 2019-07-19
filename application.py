@@ -13,31 +13,40 @@ channels = {}
 def index():
     return render_template("index.html", channels=channels.keys(), messages=channels)
 
+# Check if the new_channel name already exists
+# If it does, return an error to the user
+# Otherwise, add entry to dictionary and display on the screen
 @socketio.on("create channel")
 def create_channel(new_channel):
     name = new_channel["name"]
-    print(f"In python, create_channel, data is {name}")
 
     print(channels)
     if name in channels:
-        message = "Sorry, that channel has already been created. Try another."
+        message = f"Sorry, the channel '{name}' has already been created. Try another name."
         print(message)
         emit("channel error", message, broadcast=False)
     else:
+        # Create an new dictionary entry, with empty message array
         channels[name] = []
         print(channels)
-        emit("channel list", name, broadcast=True)
+        emit("list channel", name, broadcast=True)
 
+# User clicks on a channel, retrieve any associated messages to load
+# onto the screen
 @socketio.on("load channel")
 def load_channel(channel):
     print(f"In load_channel, name of {channel}.")
     print(f"\n\n\nAll channels are currently")
     print(channels)
     messages = channels[channel]
-    # messages = channels.get(channel)
-    print(f"Found {len(messages)} messages for {channel}.")
-    emit("load messages", {"channel": channel, "messages": messages}, broadcast=False)
 
+    print(f"Found {len(messages)} messages for {channel}.")
+    if messages:
+        emit("load messages", messages, broadcast=False)
+    # emit("load messages", {"channel": channel, "messages": messages}, broadcast=False)
+
+# Extract the pieces of the message and add to the appropriate channel entry
+# Return it back to the screen to add to list
 @socketio.on("send message")
 def send_message(data):
     text = data['text']
@@ -45,10 +54,6 @@ def send_message(data):
     time = data['time']
     channel = data['channel']
 
-    print(f"HERE IN SEND MESSAGE")
-    print(data)
-
-    # channels[channel].extend(text)
     message = {
         "text": text,
         "user": user,
