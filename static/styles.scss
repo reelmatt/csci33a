@@ -7,6 +7,11 @@ h1 {
     font-variant: small-caps;
 }
 
+
+main > div {
+    width: 100%;
+}
+
 #messageList {
     list-style-type: none;
     padding-left: 0;
@@ -19,6 +24,17 @@ h1 {
     }
 }
 
+.fixed-top {
+    margin-left: 305px;
+    // padding-left: 0px;
+}
+
+
+
+main.col-md > div {
+    padding-top: 100px;
+    background-color: red;
+}
 
 #channels {
     list-style-type: none;
@@ -30,13 +46,25 @@ h1 {
     }
 }
 
+
+#channelHead {
+    // position: fixed;
+    // top: 0;
+    // width: 100%;
+}
+
 #channelHead, footer {
-    padding-top: 10px;
+    // padding-top: 10px;
+    padding: 20px;
     background-color: #1c4280;
+    color: white;
 }
 
 
-main {
+main.col-md {
+    padding: 0px;
+
+
     // margin-bottom: 600px;
     // padding-bottom: 500px;
 }
@@ -59,9 +87,47 @@ main {
     padding: auto;
 }
 
+
+
 // Style copied from CSCI s-33a course site
 @media (min-width: 768px) {
     aside.col-md {
         flex: 0 1 20rem;
+    }
+
+
+}
+
+@media (max-width: 767px) {
+    .fixed-top {
+        margin-left: 0px;
+        position: static;
+        width: 100%;
+    }
+
+    // main.col-md >
+    main.col-md > div {
+        padding-top: 0px;
+        padding-left: 0px;
+        margin-left: 0px;
+        margin-right: 0px;
+        padding-right: 0px;
+        background-color: green;
+    }
+
+    // main.col-md > div > div {
+    //     padding-left: 0px;
+    //     margin-left: 0px;
+    //
+    // }
+    #mainDisplay, footer {
+        padding: 20px;
+    }
+    main.col-md > div > div > div {
+        padding-left: 0px;
+        padding-right: 0px;
+        margin-left: 0px;
+        margin-right: 0px;
+
     }
 }
