@@ -38,13 +38,34 @@ main.col-md > div {
 main.col-md {
   padding: 0px; }
 
+footer {
+  margin-left: 100px; }
+
 #createChannel:hover {
   text-decoration: none; }
 
 #messageContents {
   width: 100%;
+  padding-left: 10px;
   margin: 0 auto;
   display: inline; }
+
+#messageForm {
+  padding: 10px;
+  margin-left: 19px; }
+
+footer > .col {
+  padding: 0;
+  margin: 0; }
+
+footer.row {
+  bottom: 0;
+  padding: 0 auto;
+  margin: 0 auto; }
+
+#targetThis {
+  padding: 0;
+  margin: 0; }
 
 #displayNameSection {
   padding: auto; }

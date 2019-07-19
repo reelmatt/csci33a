@@ -24,13 +24,12 @@ main > div {
     }
 }
 
+// Get the #channelHead grouping to stay in the second column
 .fixed-top {
     margin-left: 305px;
-    // padding-left: 0px;
 }
 
-
-
+// Add padding to elements below fixed title
 main.col-md > div {
     padding-top: 100px;
     background-color: red;
@@ -46,13 +45,6 @@ main.col-md > div {
     }
 }
 
-
-#channelHead {
-    // position: fixed;
-    // top: 0;
-    // width: 100%;
-}
-
 #channelHead, footer {
     // padding-top: 10px;
     padding: 20px;
@@ -63,10 +55,10 @@ main.col-md > div {
 
 main.col-md {
     padding: 0px;
+}
 
-
-    // margin-bottom: 600px;
-    // padding-bottom: 500px;
+footer {
+    margin-left: 100px;
 }
 
 #createChannel:hover {
@@ -78,9 +70,34 @@ main.col-md {
 
 #messageContents {
     width: 100%;
+    padding-left: 10px;
     margin: 0 auto;
     display: inline;
     // padding-right: 1em;
+}
+
+#messageForm {
+    padding: 10px;
+    margin-left: 19px;
+}
+
+footer > .col {
+    padding: 0;
+    margin: 0;
+}
+
+footer.row {
+    // position: fixed;
+    // display: flex;
+    // flex-wrap: wrap;
+    bottom: 0;
+    padding: 0 auto;
+    margin: 0 auto;
+
+}
+#targetThis {
+    padding: 0;
+    margin: 0;
 }
 
 #displayNameSection {
@@ -90,14 +107,14 @@ main.col-md {
 
 
 // Style copied from CSCI s-33a course site
+// Keeps aside on the left at a fixed column-width
 @media (min-width: 768px) {
     aside.col-md {
         flex: 0 1 20rem;
     }
-
-
 }
 
+// Adjust spacing of fixed-top title for smaller screens
 @media (max-width: 767px) {
     .fixed-top {
         margin-left: 0px;
