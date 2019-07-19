@@ -1,154 +1,142 @@
+// Connect to websocket
+var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+
 document.addEventListener('DOMContentLoaded', () => {
 
     const message_template = Handlebars.compile(document.querySelector('#message').innerHTML);
     const channel_template = Handlebars.compile(document.querySelector('#channel').innerHTML);
 
     let channel = localStorage.getItem('channel');
-
-
+    console.log("Do we have a local channel?");
+    console.log(channel);
 
     document.getElementById('channelError').style.display = "none";
+    document.getElementById('messageError').style.display = "none";
 
     // Connect to websocket
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
-
-    /*******************************
-     * Create and switch channels
-     *******************************/
-    // When connected, configure buttons
+    /*****************************************************************
+     * Add event handlers to elements when connection is established
+     *****************************************************************/
     socket.on('connect', () => {
-        if (channel) {
-            socket.emit('load channel', channel);
-        }
+        // If a previous user, and channel is stored, load it
+        // if (channel) {
+        //     socket.emit('load channel', channel);
+        // }
+
+        // Form to create new channel; 'channel error' is emitted if a duplicate
         document.querySelector('#channelNameForm').onsubmit = () => {
-            const channel = document.getElementById('channelName').value;
-
-            socket.emit('create channel', {'name': channel});
-
+            // Clear any previous errors
             document.getElementById('channelError').style.display = "none";
 
+            // Check channel name for duplicates
+            const channel = document.getElementById('channelName').value;
+            socket.emit('create channel', {'name': channel});
+
+            // Clear input field and prevent form from submitting
             clearInput('channelName');
             return false;
         };
 
+        // Form to send messages
         document.querySelector('#messageForm').onsubmit = () => {
-                const text = document.getElementById('messageContents').value;
+            document.getElementById('messageError').style.display = "none";
+            // Get the message, add user/timestamp, and add to Flask memory
+            const message = constructMessage();
 
-                socket.emit('send message', constructMessage(text));
+            // Clear input field and prevent form from submitting
+            if (message) {
+                socket.emit('send message', message);
                 clearInput('messageContents');
-                return false;
-        };
+            } else {
+                showErrorMessage('messageError', 'Please select a channel to send messages to.');
+            }
 
-        // For any channels previously added, make button change display
-        document.querySelectorAll('button.channel').forEach(button => {
-            console.log("button name is " + button.name);
-            // button.onclick = loadChannel(button.name);
-           button.onclick = () => {
-                console.log("OTHER onclick");
-                localStorage.setItem('channel', button.name);
-                document.getElementById('channelHead').innerText = button.name;
-                socket.emit('load channel', button.name);
-            };
+            return false;
+        };
+    });
+
+
+    // If the channel name already exists, display error message
+    socket.on('channel error', message => {
+        showErrorMessage('channelError', message);
+    });
+
+
+    // A message was sent by some user
+    socket.on('receive message', message => {
+        // If it does not belong to the current channel, do not add it
+        if (message.channel !== localStorage.getItem('channel')) {
+            return;
+        }
+
+        // Belongs to the current channel, display the message
+        addNewContent('messageList', message_template({'message': message}));
+    });
+
+    // When loading a channel, also load any existing messages
+    socket.on('load messages', messages => {
+        messages.forEach(message => {
+            addNewContent('messageList', message_template({'message': message}));
         });
     });
 
-    socket.on('channel error', message => {
-        document.getElementById('channelError').innerText = message;
-        document.getElementById('channelError').style.display = "inherit";
-    });
+    // When a valid new channel is entered, add it to the list
+    socket.on('list channel', channel => {
+        addNewContent('channels', channel_template({'channel': channel}));
 
-    socket.on('receive message', message => {
-            console.log("RECEIVING MESSAGE: ");
-            console.log(message);
-            if (message.channel !== localStorage.getItem('channel')) {
-                return;
-            }
-            document.querySelector("#messageList").innerHTML += message_template({'message': message});
-    });
+        let notification = document.querySelector('#channels > p');
 
-    socket.on('load messages', data => {
-        console.log("Loading messages....");
-        document.getElementById('channelHead').innerText = localStorage.getItem('channel');
-        document.getElementById('messageList').innerHTML = '';
-        let list = document.getElementById('messageList');
-        console.log(data["messages"]);
-        if (data["messages"]) {
-            data["messages"].forEach(message => {
-                list.innerHTML += message_template({'message': message});
-            });
+        if (notification) {
+            notification.style.display = "none";
         }
-
-    });
-
-    socket.on('channel list', channel => {
-/*
-        document.getElementById('channelHead').innerText = channel;
-        localStorage.setItem('channel', channel);
-
-        // let list = document.getElementById('channels');
-        //
-        // const li = document.createElement('li');
-        document.getElementById('channels').innerHTML += channel_template({'channel': channel});
-        // const button = channel_template({'channel': channel});
-        // console.log(button);
-        // const button = document.createElement('button');
-        // document.getElementById('messageList').innerHTML = '';
-        // button.setAttribute('class', 'channel');
-        // button.innerText = channel;
-        let button = document.querySelector(`button[name="${channel}"]`);
-        console.log(button);
-
-
-        button.onclick = () => {
-            console.log("ON CLICK TRIGGER!!");
-            document.getElementById('channelHead').innerHTML = channel;
-            localStorage.setItem('channel', channel);
-            socket.emit('load channel', channel);
-        };
-        // li.innerText = button;
-        // li.appendChild(button);
-        // console.log(li);
-        // list.innerHTML += button;
-        // document.querySelector("#channels").append(li);
-    });
-*/
-
-        document.getElementById('channelHead').innerText = channel;
-        localStorage.setItem('channel', channel);
-        const li = document.createElement('li');
-        const button = document.createElement('button');
-        document.getElementById('messageList').innerHTML = '';
-        button.setAttribute('class', 'channel');
-        button.innerText = channel;
-        // button.onclick = loadChannel(channel);
-        button.onclick = () => {
-            console.log("ON CLICK TRIGGER!!");
-            document.getElementById('channelHead').innerHTML = channel;
-            localStorage.setItem('channel', channel);
-            socket.emit('load channel', channel);
-        };
-
-        li.appendChild(button);
-        console.log(li);
-        document.querySelector("#channels").append(li);
     });
 });
 
-function loadChannel (channel) {
-    console.log("ON CLICK TRIGGER!!");
-    document.getElementById('channelHead').innerHTML = channel;
+document.addEventListener('click', e => {
+    // console.log("EVENT LISTENER");
+    // console.log(e.target [.class, .tagName, .name, .type]);
+    if (e.target.type === "button") {
+        console.log("SUCCESS!!!!");
+        const channel = e.target.name;
+        // socket.emit('load channel', channel);
+        changeChannel(channel);
+        return false;
+        // document.getElementById('channelHead').innerText = "#" + e.target.name;
+    }
+
+});
+
+function addNewContent(elementId, content) {
+    document.getElementById(elementId).innerHTML += content;
+};
+
+function showErrorMessage(elementId, message) {
+    document.getElementById(elementId).innerText = message;
+    document.getElementById(elementId).style.display = "inherit";
+};
+
+function changeChannel(channel) {
     localStorage.setItem('channel', channel);
+    document.getElementById('channelHead').innerText = "#" + channel;
+    document.getElementById('messageList').innerHTML = '';
     socket.emit('load channel', channel);
 };
 
-function constructMessage(text) {
+function constructMessage() {
+    console.log("IN constructMessage()");
+
+    if ( ! localStorage.getItem('channel')) {
+        return null;
+    }
+    const text = document.getElementById('messageContents').value;
     const now = new Date();
 
     return {
         'text': text,
         'user': localStorage.getItem('user'),
-        'time': now.toLocaleString('en-US', {timeZone: 'EST'}),
+        'time': now.toLocaleString('en-US'),
         'channel': localStorage.getItem('channel')
     };
 };
