@@ -11,42 +11,12 @@ channels = {}
 
 @app.route("/")
 def index():
-    # messages = channels["channel"]["messages"]
-    # print(f"Found messages for {channel}. They are...")
-    # print({messages})
-    return render_template("index.html", channels=channels.keys())
-
-
-@app.route("/create", methods=["POST"])
-def create():
-    channel = request.form.get("channel")
-    print(f"Submitted form. New channel name is {channel}.")
-    # channels.append(channel)
-    if channel in channels:
-        message = "Sorry, that channel has already been created. Try another."
-        print(message)
-        emit("channel error", message, broadcast=False)
-        return jsonify({"success": False, "channel": channel})
-    else:
-        channels[channel] = []
-        # channel = {
-        #     "name": name,
-        #     "messages": []
-        # }
-        # print(channel)
-        # channels.append(channel)
-        print(channels)
-        emit("channel list", channel, broadcast=True)
-        return jsonify({"success": True, "channel": channel})
-
-
-
+    return render_template("index.html", channels=channels.keys(), messages=channels)
 
 @socketio.on("create channel")
 def create_channel(new_channel):
     name = new_channel["name"]
     print(f"In python, create_channel, data is {name}")
-
 
     print(channels)
     if name in channels:
@@ -56,13 +26,10 @@ def create_channel(new_channel):
     else:
         channels[name] = []
         print(channels)
-        emit("channel list", {'channel': name, 'messages': channels[name]}, broadcast=True)
-
-
+        emit("channel list", name, broadcast=True)
 
 @socketio.on("load channel")
 def load_channel(channel):
-
     print(f"In load_channel, name of {channel}.")
     print(f"\n\n\nAll channels are currently")
     print(channels)
@@ -70,8 +37,6 @@ def load_channel(channel):
     # messages = channels.get(channel)
     print(f"Found {len(messages)} messages for {channel}.")
     emit("load messages", {"channel": channel, "messages": messages}, broadcast=False)
-
-
 
 @socketio.on("send message")
 def send_message(data):
