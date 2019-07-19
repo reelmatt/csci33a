@@ -1,18 +1,38 @@
 aside {
   background-color: lightblue; }
 
-footer {
-  background-color: lightgreen;
-  position: fixed;
-  bottom: 0; }
+h1 {
+  font-variant: small-caps; }
+
+#messageList {
+  list-style-type: none;
+  padding-left: 0; }
+  #messageList li {
+    padding-bottom: 10px; }
+    #messageList li .card-title, #messageList li .card-subtitle {
+      display: inline; }
+
+#channels {
+  list-style-type: none;
+  padding-left: 0; }
+  #channels li {
+    margin-left: 0;
+    padding-top: 5px;
+    padding-bottom: 5px; }
+
+#channelHead, footer {
+  padding-top: 10px;
+  background-color: #1c4280; }
 
 #createChannel:hover {
   text-decoration: none; }
 
 #messageContents {
-  width: 80%; }
+  width: 100%;
+  margin: 0 auto;
+  display: inline; }
 
-#enterDisplayName {
+#displayNameSection {
   padding: auto; }
 
 @media (min-width: 768px) {

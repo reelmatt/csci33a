@@ -3,12 +3,38 @@ aside {
     // padding-bottom: 100%;
 }
 
-
-footer {
-    background-color: lightgreen;
-    position: fixed;
-    bottom: 0;
+h1 {
+    font-variant: small-caps;
 }
+
+#messageList {
+    list-style-type: none;
+    padding-left: 0;
+    li {
+        padding-bottom: 10px;
+
+        .card-title, .card-subtitle {
+            display: inline;
+        }
+    }
+}
+
+
+#channels {
+    list-style-type: none;
+    padding-left: 0;
+    li {
+        margin-left: 0;
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+}
+
+#channelHead, footer {
+    padding-top: 10px;
+    background-color: #1c4280;
+}
+
 
 main {
     // margin-bottom: 600px;
@@ -23,11 +49,13 @@ main {
 }
 
 #messageContents {
-    width: 80%;
+    width: 100%;
+    margin: 0 auto;
+    display: inline;
     // padding-right: 1em;
 }
 
-#enterDisplayName {
+#displayNameSection {
     padding: auto;
 }
 
