@@ -1,83 +1,106 @@
 aside {
-  background-color: lightblue; }
+  background-color: lightblue;
+}
 
 h1 {
-  font-variant: small-caps; }
+  font-variant: small-caps;
+}
 
 main > div {
-  width: 100%; }
+  width: 100%;
+}
 
 #messageList {
   list-style-type: none;
-  padding-left: 0; }
-  #messageList li {
-    padding-bottom: 10px; }
-    #messageList li .card-title, #messageList li .card-subtitle {
-      display: inline; }
+  padding-left: 0;
+}
+#messageList li {
+  padding-bottom: 10px;
+}
+#messageList li .card-title, #messageList li .card-subtitle {
+  display: inline;
+}
 
 .fixed-top {
-  margin-left: 305px; }
+  margin-left: 305px;
+}
 
 main.col-md > div {
   padding-top: 100px;
-  background-color: red; }
+  background-color: red;
+}
 
 #channels {
   list-style-type: none;
-  padding-left: 0; }
-  #channels li {
-    margin-left: 0;
-    padding-top: 5px;
-    padding-bottom: 5px; }
+  padding-left: 0;
+}
+#channels li {
+  margin-left: 0;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
 
 #channelHead, footer {
   padding: 20px;
   background-color: #1c4280;
-  color: white; }
+  color: white;
+}
 
 main.col-md {
-  padding: 0px; }
+  padding: 0px;
+}
 
 footer {
-  margin-left: 100px; }
+  margin-left: 100px;
+}
 
 #createChannel:hover {
-  text-decoration: none; }
+  text-decoration: none;
+}
 
 #messageContents {
   width: 100%;
   padding-left: 10px;
   margin: 0 auto;
-  display: inline; }
+  display: inline;
+}
 
 #messageForm {
   padding: 10px;
-  margin-left: 19px; }
+  margin-left: 19px;
+}
 
 footer > .col {
   padding: 0;
-  margin: 0; }
+  margin: 0;
+}
 
 footer.row {
   bottom: 0;
   padding: 0 auto;
-  margin: 0 auto; }
+  margin: 0 auto;
+}
 
 #targetThis {
   padding: 0;
-  margin: 0; }
+  margin: 0;
+}
 
 #displayNameSection {
-  padding: auto; }
+  padding: auto;
+}
 
 @media (min-width: 768px) {
   aside.col-md {
-    flex: 0 1 20rem; } }
+    flex: 0 1 20rem;
+  }
+}
 @media (max-width: 767px) {
   .fixed-top {
     margin-left: 0px;
     position: static;
-    width: 100%; }
+    width: 100%;
+  }
 
   main.col-md > div {
     padding-top: 0px;
@@ -85,15 +108,19 @@ footer.row {
     margin-left: 0px;
     margin-right: 0px;
     padding-right: 0px;
-    background-color: green; }
+    background-color: green;
+  }
 
   #mainDisplay, footer {
-    padding: 20px; }
+    padding: 20px;
+  }
 
   main.col-md > div > div > div {
     padding-left: 0px;
     padding-right: 0px;
     margin-left: 0px;
-    margin-right: 0px; } }
+    margin-right: 0px;
+  }
+}
 
 /*# sourceMappingURL=styles.css.map */

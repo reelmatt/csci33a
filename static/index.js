@@ -1,30 +1,25 @@
-// Connect to websocket
-var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+// Allow socket to be used outside the 'DOMContentLoaded' section
+var socket;
 
 document.addEventListener('DOMContentLoaded', () => {
 
     const message_template = Handlebars.compile(document.querySelector('#message').innerHTML);
     const channel_template = Handlebars.compile(document.querySelector('#channel').innerHTML);
 
-    let channel = localStorage.getItem('channel');
-    console.log("Do we have a local channel?");
-    console.log(channel);
+    let channel = localStorage.removeItem('channel');
+    // console.log("Do we have a local channel?");
+    // console.log(channel);
 
     document.getElementById('channelError').style.display = "none";
     document.getElementById('messageError').style.display = "none";
 
     // Connect to websocket
-    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+    socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
     /*****************************************************************
      * Add event handlers to elements when connection is established
      *****************************************************************/
     socket.on('connect', () => {
-        // If a previous user, and channel is stored, load it
-        // if (channel) {
-        //     socket.emit('load channel', channel);
-        // }
-
         // Form to create new channel; 'channel error' is emitted if a duplicate
         document.querySelector('#channelNameForm').onsubmit = () => {
             // Clear any previous errors
@@ -41,7 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Form to send messages
         document.querySelector('#messageForm').onsubmit = () => {
+            // Clear any previous errors
             document.getElementById('messageError').style.display = "none";
+
             // Get the message, add user/timestamp, and add to Flask memory
             const message = constructMessage();
 
@@ -75,6 +72,33 @@ document.addEventListener('DOMContentLoaded', () => {
         addNewContent('messageList', message_template({'message': message}));
     });
 
+    socket.on('remove message', messageToDelete => {
+      // If it does not belong to the current channel, do not add it
+      if (messageToDelete.channel !== localStorage.getItem('channel')) {
+          return;
+      }
+
+      console.log("REMOVE THE MESSAGE");
+
+      const allMessages = document.querySelectorAll('#messageList > li');
+      // console.log(allMessages[0]);
+
+      allMessages.forEach(message => {
+          console.log(message);
+            const text = message.querySelector('.card-text').innerText;
+            const user = message.querySelector('.card-title').innerText;
+            const time = message.querySelector('.card-subtitle').innerText;;
+
+            if (text === messageToDelete.text && user === messageToDelete.user && time === messageToDelete.time) {
+                console.log("MESSAGES MATCH!!!!");
+                message.remove();
+                return;
+            } else {
+              console.log("NO MATCH!");
+            }
+      });
+    });
+
     // When loading a channel, also load any existing messages
     socket.on('load messages', messages => {
         messages.forEach(message => {
@@ -96,14 +120,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
 document.addEventListener('click', e => {
     // console.log("EVENT LISTENER");
+    console.log(e.target.className);
     // console.log(e.target [.class, .tagName, .name, .type]);
     if (e.target.type === "button") {
-        console.log("SUCCESS!!!!");
-        const channel = e.target.name;
-        // socket.emit('load channel', channel);
-        changeChannel(channel);
-        return false;
-        // document.getElementById('channelHead').innerText = "#" + e.target.name;
+        const className = e.target.className;
+        if (className.search('channel') !== -1) {
+            console.log("SUCCESS!!!!");
+            console.log(className.search('channel'));
+            const channel = e.target.name;
+            // socket.emit('load channel', channel);
+            changeChannel(channel);
+            return false;
+            // document.getElementById('channelHead').innerText = "#" + e.target.name;
+        } else if (className.search('deleteMessage') !== -1) {
+            console.log("DELETE MESSAGE");
+            const message = e.target.parentNode;
+            console.log(message);
+            const messageSender = message.querySelector('.card-title').innerText;
+            console.log("SENDER: ");
+            console.log(messageSender);
+            const user = localStorage.getItem('user');
+
+
+            if (messageSender === user) {
+                console.log("ALLOWED TO DELETE. EMIT MESSAGE");
+
+                const thisMessage = {
+                  'text': message.querySelector('.card-text').innerText,
+                  'user': messageSender,
+                  'time': message.querySelector('.card-subtitle').innerText,
+                  'channel': localStorage.getItem('channel')
+                };
+
+                console.log(thisMessage);
+                socket.emit('delete message', thisMessage);
+            }
+        }
+
     }
 
 });

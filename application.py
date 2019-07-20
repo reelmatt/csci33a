@@ -48,22 +48,40 @@ def load_channel(channel):
 # Extract the pieces of the message and add to the appropriate channel entry
 # Return it back to the screen to add to list
 @socketio.on("send message")
-def send_message(data):
-    text = data['text']
-    user = data['user']
-    time = data['time']
-    channel = data['channel']
+def send_message(message):
+    channel = message['channel']
 
-    message = {
-        "text": text,
-        "user": user,
-        "channel": channel
-    }
-    print(f"ADDED TO CHANNEL...\n\n\n\n")
-    channels[channel].append(data)
     messages = channels[channel]
-    print(channels)
-    print(channels[channel])
-    print(f"There are currently {len(messages)} messages.")
 
-    emit("receive message", data, broadcast=True)
+    if len(messages) >= 5:
+        removed_msg = messages.pop(0)
+        print(f"REMOVED {removed_msg}")
+
+    # channels[channel].append(data)
+    messages.append(message)
+    emit("receive message", message, broadcast=True)
+
+@socketio.on("delete message")
+def delete_message(message):
+    print(f"\n\nIn python, message is {message}")
+
+    channel = message['channel']
+    messages = channels[channel]
+
+    print(messages)
+
+    print(f"WE HAVE {len(messages)} messages")
+    for storedMessage in messages:
+        print(f"\n\n{storedMessage}")
+
+        if storedMessage == message:
+            print("WE HAVE A MATCH")
+            messages.remove(storedMessage)
+            emit("remove message", message, broadcast=True)
+            print(f"WE HAVE {len(messages)} messages")
+            return
+        else:
+            print("NO MATCH")
+
+    print(f"WE HAVE {len(messages)} messages")
+    # emit("remove message", message, broadcast=True)
