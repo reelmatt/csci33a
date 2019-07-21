@@ -19,6 +19,10 @@
         <li><button type="button" class="btn btn-outline-primary channel" name="{% raw -%}{{channel}}{%- endraw %}">{% raw -%}{{channel}}{%- endraw %}</button></li>
     </script>
 
+    <script id="errorMessage" type="text/x-handlebars-template">
+        <div class="alert alert-danger" role="alert">{% raw -%}{{message}}{%- endraw %}</div>
+    </script>
+
     <script id="message" type="text/x-handlebars-template" onclick=>
         <li>
             <div class="card">
@@ -27,7 +31,12 @@
                 <h6 class="card-subtitle mb-2 text-muted">{% raw -%}{{message.time}}{%- endraw %}</h6>
                 <p class="card-text">{% raw -%}{{message.text}}{%- endraw %}</p>
               </div>
-              <button type="button" class="deleteMessage btn btn-warning">X</button>
+              {% raw -%}
+                  {{#ifeq message.user localUser}}
+                    <button type="button" class="deleteMessage btn btn-warning">X</button>
+                  {{/ifeq}}
+              {%- endraw %}
+
             </div>
         </li>
     </script>
