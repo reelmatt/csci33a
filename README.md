@@ -20,18 +20,22 @@ display.
 
 To allow for unique identification between users (and therefore not allowing
 a second user with the same display name to delete one's messages), my
-implementation restricts display names to unique.
+implementation restricts display names to be unique.
+
+For the list of channels, to more closely mimic the Slack interface, and to more
+clearly identify a channel as something a user can switch into, a '#' is added
+in front of every appearance. The channel name is stored server-side *without*
+the '#'.
 
 # Files
 + application.py - main application code
 + requirements.txt - project-provided file; unchanged from initial fork
 + static/
     + styles.scss - Custom styles added in addition to Bootstrap; compiled down
-      to styles.css using the SASS CLI.
+      to styles.css using the SASS CLI. (Associated files styles.css.map and
+      styles.css.)
     + index.js - Main Javascript code to support channels, messages, and more.
-        Structured to hide/show things as a single-page application.
-    + register.js - A separate helper file to deal with all code related to a
-        user entering a display name.
+      Structured to hide/show things as a single-page application.
 + templates/
     + index.html - The main layout template. Since this is a single-page
         application, there is only this one main file. Sub-elements are added
