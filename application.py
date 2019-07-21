@@ -20,7 +20,6 @@ def index():
 def create_channel(new_channel):
     name = new_channel["name"]
 
-    print(channels)
     if name in channels:
         message = f"Sorry, the channel '{name}' has already been created. Try another name."
         print(message)
@@ -35,53 +34,37 @@ def create_channel(new_channel):
 # onto the screen
 @socketio.on("load channel")
 def load_channel(channel):
-    print(f"In load_channel, name of {channel}.")
-    print(f"\n\n\nAll channels are currently")
-    print(channels)
     messages = channels[channel]
 
-    print(f"Found {len(messages)} messages for {channel}.")
     if messages:
         emit("load messages", messages, broadcast=False)
-    # emit("load messages", {"channel": channel, "messages": messages}, broadcast=False)
 
 # Extract the pieces of the message and add to the appropriate channel entry
 # Return it back to the screen to add to list
 @socketio.on("send message")
 def send_message(message):
     channel = message['channel']
-
     messages = channels[channel]
 
-    if len(messages) >= 5:
-        removed_msg = messages.pop(0)
-        print(f"REMOVED {removed_msg}")
+    # Limit of 100 messages per channel, remove from start of list
+    if len(messages) >= 100:
+        messages.pop(0)
 
-    # channels[channel].append(data)
+    # Add new message and notify clients
     messages.append(message)
     emit("receive message", message, broadcast=True)
 
+# Delete message from Python memory and notify browsers
 @socketio.on("delete message")
 def delete_message(message):
-    print(f"\n\nIn python, message is {message}")
-
+    # Retrieve the list of messages for the channel
     channel = message['channel']
     messages = channels[channel]
 
-    print(messages)
-
-    print(f"WE HAVE {len(messages)} messages")
+    # Search through the messages to find the one to delete
     for storedMessage in messages:
-        print(f"\n\n{storedMessage}")
-
+        # Got a match, delete from list and notify browsers
         if storedMessage == message:
-            print("WE HAVE A MATCH")
             messages.remove(storedMessage)
             emit("remove message", message, broadcast=True)
-            print(f"WE HAVE {len(messages)} messages")
             return
-        else:
-            print("NO MATCH")
-
-    print(f"WE HAVE {len(messages)} messages")
-    # emit("remove message", message, broadcast=True)
