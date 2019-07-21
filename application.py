@@ -8,10 +8,22 @@ app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 socketio = SocketIO(app)
 
 channels = {}
+users = []
 
 @app.route("/")
 def index():
     return render_template("index.html", channels=channels.keys(), messages=channels)
+
+
+@socketio.on("add user")
+def add_user(name):
+    print(f"ADDING user {name}")
+    if name in users:
+        message = f"Sorry, a user with the name '{name}' already exists."
+        emit("user error", message, broadcast=False)
+    else:
+        users.append(name)
+        emit("create user", name, broadcast=False)
 
 # Check if the new_channel name already exists
 # If it does, return an error to the user
