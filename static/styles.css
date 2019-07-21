@@ -28,7 +28,6 @@ main > div {
 
 main.col-md > div {
   padding-top: 100px;
-  background-color: red;
 }
 
 #channels {
@@ -76,6 +75,11 @@ footer > .col {
   margin: 0;
 }
 
+.deleteMessage {
+  display: inline;
+  float: right;
+}
+
 footer.row {
   bottom: 0;
   padding: 0 auto;
@@ -109,7 +113,6 @@ footer.row {
     margin-left: 0px;
     margin-right: 0px;
     padding-right: 0px;
-    background-color: green;
   }
 
   main.col-md > div > div > div {
