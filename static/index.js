@@ -24,16 +24,40 @@ document.addEventListener('DOMContentLoaded', () => {
     // Connect to websocket
     socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
-    /*****************************************************************
-     * Add event handlers to elements when connection is established
-     *****************************************************************/
+    // If no user stored locally, present form for them to register
+    if ( ! localStorage.getItem('user') ) {
+        document.querySelector('#displayNameSection').style.display = "inherit";
+
+        // Enable button only if there is text in the input field
+        // Modified from code in CSCI s33a lecture 5
+        document.querySelector('#displayName').onkeyup = () => {
+            if (document.querySelector('#displayName').value.length > 0) {
+                document.querySelector('#displayNameSubmit').disabled = false;
+            } else {
+                document.querySelector('#displayNameSubmit').disabled = true;
+            }
+        };
+
+        document.querySelector('#displayNameForm').onsubmit = () => {
+            // Check if the display name is unique, and store
+            socket.emit('add user', document.querySelector("#displayName").value);
+
+            // Stop form from submitting
+            return false;
+        };
+    }
+    // otherwise, the display name form should not be displayed
+    else {
+        document.querySelector('#displayNameSection').remove();
+    }
+    /*********************************************************************
+     * Add event handlers to form elements when connection is established
+     *********************************************************************/
     socket.on('connect', () => {
         // Form to create new channel; 'channel error' is emitted if a duplicate
         document.querySelector('#channelNameForm').onsubmit = () => {
-
             // Check channel name for duplicates
-            const channel = document.getElementById('channelName').value;
-            socket.emit('create channel', {'name': channel});
+            socket.emit('create channel', {'name': document.getElementById('channelName').value});
 
             // Clear input field and prevent form from submitting
             clearInput('channelName');
@@ -45,9 +69,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Get the message text, add user, timestamp, and channel
             const message = constructMessage();
 
-            // If invalid, constructMessage() will return null
+            // Message is valid, so notify the application
             if (message) {
-                // Good to go, store in server and clear input
                 socket.emit('send message', message);
                 clearInput('messageContents');
 
@@ -61,22 +84,33 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
+    // User is unique, so store it and remove the form
+    socket.on('create user', name => {
+        localStorage.setItem('user', name);
+        document.querySelector('#displayNameSection').remove();
+    });
+
+    // There was a problem storing the user, so display a message
+    socket.on('user error', message => {
+        showErrorMessage('userError', message);
+    });
 
     // If the channel name already exists, display error message
     socket.on('channel error', message => {
         showErrorMessage('channelError', message);
     });
 
-
     // A message was sent by some user
     socket.on('receive message', message => {
-        // If it does not belong to the current channel, do nothing
-        if (message.channel !== localStorage.getItem('channel')) {
-            return;
+        // The message belongs to the channel the user is currently looking at,
+        // so add it to the screen.
+        if (message.channel === localStorage.getItem('channel')) {
+            addNewContent('messageList', message_template({
+              'message': message,
+              'localUser': localStorage.getItem('user')
+            })
+          );
         }
-
-        // Belongs to the current channel, display the message
-        addNewContent('messageList', message_template({'message': message, 'localUser': localStorage.getItem('user')}));
     });
 
     // A message was deleted by its sender
@@ -127,14 +161,18 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.addEventListener('click', e => {
+    // If there is no user, buttons should not work
+    if (! localStorage.getItem('user')) {
+      return;
+    }
+
     // Only add listeners on buttons
     if (e.target.type === "button") {
         const className = e.target.className;
 
         // Buttons to change channels
         if (className.search('channel') !== -1) {
-            const channel = e.target.name;
-            changeChannel(channel);
+            changeChannel(e.target.name);
             return false;
         }
         // Buttons to delete messages
@@ -185,7 +223,7 @@ function changeChannel(channel) {
 // through to the application.
 function constructMessage() {
     // If a channel hasn't been selected, stop message from sending
-    if ( ! localStorage.getItem('channel')) {
+    if ( ! localStorage.getItem('channel') || ! localStorage.getItem('user')) {
         return null;
     }
 
