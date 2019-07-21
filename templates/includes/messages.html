@@ -1,11 +1,9 @@
 <section id="messages">
-    <!-- If a duplicate channel is entered, error message will appear here -->
-    <div class="alert alert-danger" role="alert" id="messageError"></div>
+  <!-- If no channel is selected, message will not send and error is displayed. -->
+  <div id='messageError'></div>
 
-    <ul id="messageList">
-        <p>Please select a channel, or create a new one, to send and receive messages.</p>
-        <!-- {% for message in messages %}
-            <li>{{message}}</li>
-        {% endfor %} -->
-    </ul>
+  <!-- Main view of the page that shows a list of all sent messages. -->
+  <ul id="messageList">
+    <p>Please select a channel, or create a new one, to send and receive messages.</p>
+  </ul>
 </section>
