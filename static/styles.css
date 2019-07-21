@@ -1,5 +1,6 @@
 aside {
   background-color: lightblue;
+  min-height: 400px;
 }
 
 h1 {
@@ -111,15 +112,15 @@ footer.row {
     background-color: green;
   }
 
-  #mainDisplay, footer {
-    padding: 20px;
-  }
-
   main.col-md > div > div > div {
     padding-left: 0px;
     padding-right: 0px;
     margin-left: 0px;
     margin-right: 0px;
+  }
+
+  #mainDisplay, footer {
+    padding: 20px;
   }
 }
 

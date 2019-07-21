@@ -1,5 +1,7 @@
 aside {
     background-color: lightblue;
+    min-height: 400px;
+    // min-height: 100%;
     // padding-bottom: 100%;
 }
 
@@ -29,7 +31,7 @@ main > div {
     margin-left: 305px;
 }
 
-// Add padding to elements below fixed title
+// Add padding to elements below fixed title; prevents from being hidden
 main.col-md > div {
     padding-top: 100px;
     background-color: red;
@@ -116,13 +118,14 @@ footer.row {
 
 // Adjust spacing of fixed-top title for smaller screens
 @media (max-width: 767px) {
+    // Reset so channel name bar takes up full-width on smaller screen
     .fixed-top {
         margin-left: 0px;
         position: static;
         width: 100%;
     }
 
-    // main.col-md >
+    // Reset spacing for main display
     main.col-md > div {
         padding-top: 0px;
         padding-left: 0px;
@@ -131,20 +134,15 @@ footer.row {
         padding-right: 0px;
         background-color: green;
     }
-
-    // main.col-md > div > div {
-    //     padding-left: 0px;
-    //     margin-left: 0px;
-    //
-    // }
-    #mainDisplay, footer {
-        padding: 20px;
-    }
     main.col-md > div > div > div {
         padding-left: 0px;
         padding-right: 0px;
         margin-left: 0px;
         margin-right: 0px;
 
+    }
+
+    #mainDisplay, footer {
+        padding: 20px;
     }
 }
