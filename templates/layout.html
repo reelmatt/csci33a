@@ -16,7 +16,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.11/handlebars.min.js"></script>
 
     <script id="channel" type="text/x-handlebars-template">
-        <li><button type="button" class="btn btn-outline-primary channel" name="{% raw -%}{{channel}}{%- endraw %}">{% raw -%}{{channel}}{%- endraw %}</button></li>
+        <li><button type="button" class="btn btn-outline-primary channel" name="{% raw -%}{{channel}}{%- endraw %}">#{% raw -%}{{channel}}{%- endraw %}</button></li>
     </script>
 
     <script id="errorMessage" type="text/x-handlebars-template">
@@ -49,7 +49,6 @@
 
     <!-- My Javascript -->
     <script src="../static/index.js"></script>
-    <script src="../static/register.js"></script>
 
     <title>Flack</title>
 </head>
