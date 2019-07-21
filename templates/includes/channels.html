@@ -17,7 +17,7 @@
   <ul id="channels">
     {% if channels %}
       {% for channel in channels %}
-      <li><button type="button" class="btn btn-outline-primary channel" name="{{channel}}">#{{channel}}</button></li>
+        <li><button type="button" class="btn btn-outline-primary channel" name="{{channel}}">#{{channel}}</button></li>
       {% endfor %}
     {% else %}
       <p>There are no channels. Create a new one to begin!</p>

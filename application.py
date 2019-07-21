@@ -7,17 +7,18 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 socketio = SocketIO(app)
 
+# Store channels (with associated messages), and list of users
 channels = {}
 users = []
 
+# Load the single-page app (pass in any channels that have been created)
 @app.route("/")
 def index():
-    return render_template("index.html", channels=channels.keys(), messages=channels)
+    return render_template("index.html", channels=channels.keys())
 
-
+# Check new display name against list of users to prevent duplicates
 @socketio.on("add user")
 def add_user(name):
-    print(f"ADDING user {name}")
     if name in users:
         message = f"Sorry, a user with the name '{name}' already exists."
         emit("user error", message, broadcast=False)
@@ -34,12 +35,10 @@ def create_channel(new_channel):
 
     if name in channels:
         message = f"Sorry, the channel '{name}' has already been created. Try another name."
-        print(message)
         emit("channel error", message, broadcast=False)
     else:
         # Create an new dictionary entry, with empty message array
         channels[name] = []
-        print(channels)
         emit("list channel", name, broadcast=True)
 
 # User clicks on a channel, retrieve any associated messages to load

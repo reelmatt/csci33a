@@ -1,33 +1,12 @@
+/*********************************************************************
+ * Sidebar/channel stylings
+ *********************************************************************/
 aside {
   background-color: lightblue;
-  min-height: 400px;
 }
 
 h1 {
   font-variant: small-caps;
-}
-
-main > div {
-  width: 100%;
-}
-
-#messageList {
-  list-style-type: none;
-  padding-left: 0;
-}
-#messageList li {
-  padding-bottom: 10px;
-}
-#messageList li .card-title, #messageList li .card-subtitle {
-  display: inline;
-}
-
-.fixed-top {
-  margin-left: 305px;
-}
-
-main.col-md > div {
-  padding-top: 100px;
 }
 
 #channels {
@@ -40,22 +19,34 @@ main.col-md > div {
   padding-bottom: 5px;
 }
 
-#channelHead, footer {
+#createChannel:hover {
+  text-decoration: none;
+}
+
+#channelHead,
+footer {
   padding: 20px;
   background-color: #1c4280;
   color: white;
 }
 
-main.col-md {
-  padding: 0px;
+/*********************************************************************
+ * Main display (messages, selected channel, display name form)
+ *********************************************************************/
+main > div {
+  width: 100%;
 }
 
-footer {
-  margin-left: 100px;
+#messageList {
+  list-style-type: none;
+  padding-left: 0;
 }
-
-#createChannel:hover {
-  text-decoration: none;
+#messageList li {
+  padding-bottom: 10px;
+}
+#messageList li .card-subtitle,
+#messageList li .card-title {
+  display: inline;
 }
 
 #messageContents {
@@ -70,14 +61,30 @@ footer {
   margin-left: 19px;
 }
 
-footer > .col {
-  padding: 0;
-  margin: 0;
-}
-
 .deleteMessage {
   display: inline;
   float: right;
+}
+
+.fixed-top {
+  margin-left: 305px;
+}
+
+main.col-md > div {
+  padding-top: 100px;
+}
+
+main.col-md {
+  padding: 0;
+}
+
+footer {
+  margin-left: 100px;
+}
+
+footer > .col {
+  padding: 0;
+  margin: 0;
 }
 
 footer.row {
@@ -86,15 +93,13 @@ footer.row {
   margin: 0 auto;
 }
 
-#targetThis {
-  padding: 0;
-  margin: 0;
-}
-
 #displayNameSection {
   padding: auto;
 }
 
+/*********************************************************************
+ * Responsive Styles
+ *********************************************************************/
 @media (min-width: 768px) {
   aside.col-md {
     flex: 0 1 20rem;
@@ -102,27 +107,28 @@ footer.row {
 }
 @media (max-width: 767px) {
   .fixed-top {
-    margin-left: 0px;
+    margin-left: 0;
     position: static;
     width: 100%;
   }
 
   main.col-md > div {
-    padding-top: 0px;
-    padding-left: 0px;
-    margin-left: 0px;
-    margin-right: 0px;
-    padding-right: 0px;
+    padding-top: 0;
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: 0;
+    margin-right: 0;
   }
 
   main.col-md > div > div > div {
-    padding-left: 0px;
-    padding-right: 0px;
-    margin-left: 0px;
-    margin-right: 0px;
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: 0;
+    margin-right: 0;
   }
 
-  #mainDisplay, footer {
+  #mainDisplay,
+footer {
     padding: 20px;
   }
 }
