@@ -10,7 +10,11 @@
   <p>{{key}}</p>
   <ul>
   {% for value in values %}
-    <li>{{value}}</li>
+    <li>
+      <a href="{% url 'item' value.id %}">
+        {{value}}
+      </a>
+    </li>
 
   {% endfor %}
   </ul>
