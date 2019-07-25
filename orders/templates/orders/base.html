@@ -1,0 +1,27 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+
+        <!-- Responsive meta tag, per Bootstrap 'Getting Started' -->
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- My stylesheet -->
+        <link rel="stylesheet" href="{% static 'orders/styles.css' %}"/>
+
+        <title>{% block title %}{% endblock %}</title>
+
+    </head>
+    <body>
+        {% include "orders/nav.html" %}
+        {% block body %}
+        {% endblock %}
+    </body>
+</html>

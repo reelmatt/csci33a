@@ -1,0 +1,16 @@
+<nav class="navbar navbar-expand-md navbar-light">
+    <a class="navbar-brand" href="/">
+        Pinnochio's Pizza & Subs
+    </a>
+
+    <div class="collapse navbar-collapse d-flex justify-content-md-end">
+        <div class="navbar-nav">
+            <!-- Just show all links for now -->
+            <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
+            <a class="nav-item nav-link" href="{% url 'logout' %}">Logout</a>
+            <a class="nav-item nav-link" href="{% url 'menu' %}">Menu</a>
+            <a class="nav-item nav-link" href="{% url 'register' %}">Create Account</a>
+
+        </div>
+    </div>
+</nav>
