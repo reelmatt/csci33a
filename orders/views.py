@@ -3,7 +3,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render
 from django.urls import reverse
-
+from django.contrib.auth.forms import AuthenticationForm
 
 from django.contrib.auth.models import User
 from .models import Item, Topping, Category
@@ -25,41 +25,63 @@ def index(request):
 Replaced with Django built-in authentication views.
 See documentation for more.
 https://docs.djangoproject.com/en/2.2/topics/auth/default/#module-django.contrib.auth.views
-'''
-# def login_view(request):
-#     print("WE ARE IN LOGIN VIEW")
-#
-#     # if not request.user.is_authenticated:
-#     if request.method == "GET":
-#             return render(request, "orders/login.html", {"message": None})
-#
-#     username = request.POST["username"]
-#     password = request.POST["password"]
-#     user = authenticate(request, username=username, password=password)
-#     if user is not None:
-#         login(request, user)
-#         return HttpResponseRedirect(reverse("index"))
-#     else:
-#         return render(request, "orders/login.html", {"message": "Invalid credentials."})
 
-# def logout_view(request):
-#     logout(request)
-#     return render(request, "orders/login.html", {"message": "Logged out."})
+https://docs.djangoproject.com/en/2.2/topics/auth/default/#all-authentication-views
+'''
 
 # Still need a register route
 def register(request):
     if request.method == "GET":
-        return render(request, "registration/register.html")
+        form = AuthenticationForm()
+        return render(request, "registration/register.html", {"form": form})
 
-    username = request.POST["username"]
-    password = request.POST["password"]
+    form = AuthenticationForm(request.POST)
+    if form.is_valid():
+        print("\n\nYAY FORM VALID")
+        form.save()
+        username = request.POST["username"]
+        password = request.POST["password"]
+        confirmPassword = request.POST["confirmPassword"]
+        first = request.POST["firstName"]
+        last = request.POST["lastName"]
+        email = request.POST["email"]
+        if password != confirmPassword:
+            print("Passwords don't match.")
+            return render(request, "registration/register.html", {"message": "Passwords don't match."})
+        print(f"Creating user {username} with {password}")
+        user = User.objects.create_user(username=username, email=email, password=password, last_name=last, first_name=first)
+        print(f"MADE {user}")
+        login(request, user)
+    else:
+        print(f"\n\nWHOOPS, form not valid")
+        raise form.ValidationError(
+                _("This account is inactive."),
+                code='inactive',
+            )
+        return render(request, "registration/register.html", {"form": form})
 
-    print(f"Creating user {username} with {password}")
-    user = User.objects.create_user(username=username, email=None, password=password)
-    print(f"MADE {user}")
-    login(request, user)
-    return HttpResponseRedirect(reverse("index"))
+def item(request, item_id):
+    try:
+        item = Item.objects.get(pk=item_id)
+    except Item.DoesNotExist:
+        raise Http404("Item does not exist")
 
+
+
+    print(item)
+    print(item.toppings.all())
+    context = {
+        "item": item,
+        "toppings": item.toppings.all(),
+    }
+
+    return render(request, "orders/item.html", context)
+
+def add_to_cart(request):
+    if request.method == "POST":
+        values = request.POST.getlist('toppings[]')
+        print(values)
+        return HttpResponseRedirect(reverse("index"))
 
 def menu(request):
     menu = {}
@@ -78,9 +100,7 @@ def menu(request):
 
     print(menu)
     context = {
-        # "items": items,
         "toppings": toppings,
-        # "allowed": allowed,
         "categories": categories,
         "menu": menu
     }
