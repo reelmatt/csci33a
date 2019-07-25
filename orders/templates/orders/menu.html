@@ -6,5 +6,21 @@
 
 {% block body %}
 <h1>Menu</h1>
+{% for key, values in menu.items %}
+  <p>{{key}}</p>
+  <ul>
+  {% for value in values %}
+    <li>{{value}}</li>
+
+  {% endfor %}
+  </ul>
+{% endfor %}
+
+<h2>Toppings</h2>
+<ul>
+{% for topping in toppings %}
+  <li>{{topping}}</li>
+{% endfor %}
+</ul>
 
 {% endblock %}

@@ -1,12 +1,12 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render
 from django.urls import reverse
 
 
 from django.contrib.auth.models import User
-
+from .models import Item, Topping, Category
 # Create your views here.
 def index(request):
 
@@ -62,4 +62,26 @@ def register(request):
 
 
 def menu(request):
-    return render(request, "orders/menu.html")
+    menu = {}
+    try:
+        # items = Item.objects.all()
+        toppings = Topping.objects.all()
+        # allowed = items[2].toppings.all()
+
+        categories = Category.objects.all()
+
+        for category in categories:
+            menu[category.name] = category.items.all()
+
+    except Item.DoesNotExist:
+        raise Http404("Item does not exist")
+
+    print(menu)
+    context = {
+        # "items": items,
+        "toppings": toppings,
+        # "allowed": allowed,
+        "categories": categories,
+        "menu": menu
+    }
+    return render(request, "orders/menu.html", context)
