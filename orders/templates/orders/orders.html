@@ -1,0 +1,33 @@
+{% extends "orders/base.html" %}
+
+{% block title %}
+    Placed Orders
+{% endblock %}
+
+{% block body %}
+<h1>Placed Orders</h1>
+    {% if orders %}
+    <table class="table table-sm">
+        <thead class="table-borderless">
+            <tr>
+                <th scope="col">Order #</th>
+                <th scope="col">Customer</th>
+                <th scope="col">Ordered Time</th>
+                <th scope="col">Status</th>
+            </tr>
+            <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td><a href="{% url 'order' order.id %}">{{order}}</a></td>
+                        <td>{{order.customer}}</td>
+                        <td>{{order.creation_time}}</td>
+                        <td>In progress</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+    </table>
+    {% else %}
+        <p>There are currently no orders. Please wait for customers to place an order.</p>
+    {% endif %}
+
+{% endblock %}

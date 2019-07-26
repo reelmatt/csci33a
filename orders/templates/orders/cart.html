@@ -1,0 +1,25 @@
+{% extends "orders/base.html" %}
+
+{% block title %}
+    Cart
+{% endblock %}
+
+{% block body %}
+<h1>Cart</h1>
+
+<form method="POST" action="{% url 'checkout' %}">
+    {% csrf_token %}
+    <div class="form-group">
+    {% for topping in toppings %}
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" name="toppings[]" value="{{topping}}" id="{{topping}}">
+        <label class="form-check-label" for="{{topping}}">{{topping}}</label>
+        </div>
+    {% endfor %}
+    </div>
+
+    <button type="submit" class="btn btn-primary">Checkout</button>
+</form>
+
+
+{% endblock %}
