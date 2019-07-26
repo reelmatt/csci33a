@@ -44,4 +44,4 @@ class Order(models.Model):
     modified_time = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.cost}"
+        return f"Order #{self.id}"
