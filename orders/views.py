@@ -11,7 +11,20 @@ from .models import Item, Topping, Category, Order
 
 # Display home page
 def index(request):
-    return render(request, "orders/index.html")
+
+
+    if request.user and request.user.is_authenticated:
+        user = User.objects.get(pk=request.user.id)
+        orders = user.customer_orders.all()
+        print(f"User's orders are....")
+        print(orders)
+        print(orders[0].items.all())
+        # context[cart] = orders
+
+    context = {
+        # "cart": orders.items.all()
+    }
+    return render(request, "orders/index.html", context)
 
 '''
 Login/logout views are handled using the Django built-in authentication views.
@@ -96,8 +109,25 @@ def item(request, item_id):
 
 # Show contents of a user's cart
 def cart(request):
+    context = {}
+    message = None
+    items = None
+    if request.user.is_authenticated:
+        order_id = request.session.get("user_order")
+        if order_id is not None:
+            order = Order.objects.get(pk=order_id)
+            items = order.items.all()
+        else:
+            message = "You haven't added any items to your cart yet."
 
-    return render(request, "orders/cart.html")
+
+    # https://www.geeksforgeeks.org/ternary-operator-in-python/
+    context = {
+        "items": items,
+        "message": message,
+    }
+
+    return render(request, "orders/cart.html", context)
 
 # Admin view to see all orders placed by customers
 def view_orders(request):
@@ -144,17 +174,36 @@ def add_to_cart(request):
     except Item.DoesNotExist:
         print("whoops")
 
-    print(itemId)
-    print(price)
-    print(values)
+    print(f"SESSION INFO")
+    print(request.session)
+
+
+
+    print(f"itemID: {itemId}")
+    print(f"price {price}")
+    print(f"values {values}")
     userId = request.user.id
     user = User.objects.get(pk=userId)
     print(user)
 
-    order = Order.objects.create(
-        customer = user,
-        cost = price
-    )
+    stored_order = request.session.get("user_order")
+    print(f"DO we have a session order? {stored_order}")
+
+    if stored_order is None:
+        order = Order.objects.create(
+            customer = user,
+            cost = price
+        )
+
+        request.session["user_order"] = order.id
+    else:
+        order = Order.objects.get(pk=stored_order)
+
 
     order.items.add(item)
+
+    cost = order.calculate_cost()
+    print(f"Cost is {cost}")
+
+
     return HttpResponseRedirect(reverse("index"))
