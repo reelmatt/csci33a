@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from django.contrib.auth.models import User
-from .models import Category, Order, Topping, Item
+from .models import Category, Order, Topping, Item, Status
 
 # Register your models here.
 # class ItemInline(admin.StackedInline):
@@ -19,3 +19,4 @@ admin.site.register(Category)
 admin.site.register(Order)
 admin.site.register(Topping)
 admin.site.register(Item)
+admin.site.register(Status)
