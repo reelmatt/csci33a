@@ -35,13 +35,33 @@ class Item(models.Model):
     def __str__(self):
         return f"{self.name}"
 
+# An order's status
+class Status(models.Model):
+    status = models.CharField(max_length=32)
+
+    def __str__(self):
+        return f"{self.status}"
+
+
 # A customer's order
 class Order(models.Model):
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="customer_orders")
     cost = models.DecimalField(max_digits=6, decimal_places=2)
     items = models.ManyToManyField(Item, blank=True, related_name="orders")
+    status = models.ForeignKey(Status, on_delete=models.CASCADE, null=True, blank=True, related_name="orders")
     creation_time = models.DateTimeField(auto_now_add=True)
     modified_time = models.DateTimeField(auto_now=True)
+
+    def calculate_cost(self):
+        items = self.items.all()
+        sum = 0
+        for item in items:
+            sum += item.price_small
+        print(f"DO we have items in correct form {items}")
+        # self.cost = sum(items)
+        print(f"IN CALCULATE COST, value is {sum}")
+        self.cost = sum
+        return self.cost
 
     def __str__(self):
         return f"Order #{self.id}"
