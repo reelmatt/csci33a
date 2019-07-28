@@ -12,7 +12,8 @@ urlpatterns = [
     path("menu", views.menu, name="menu"),
     path("menu/<int:item_id>", views.item, name="item"),
     path("register", views.register, name="register"),
-    path("add_to_cart", views.add_to_cart, name="add_to_cart")
+    path("add_to_cart", views.add_to_cart, name="add_to_cart"),
+    path("remove_item", views.remove_item, name="remove_item")
     # Replaced with auth.urls, see above
     # path("login", views.login_view, name="login"),
     # path("login", name="login"),
