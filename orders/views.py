@@ -7,11 +7,10 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.views.decorators.http import require_http_methods, require_POST
 
 from django.contrib.auth.models import User
-from .models import Item, Topping, Category, Order
+from .models import Item, Topping, Category, Order, Status
 
 # Display home page
 def index(request):
-
 
     if request.user and request.user.is_authenticated:
         user = User.objects.get(pk=request.user.id)
@@ -32,7 +31,6 @@ See documentation for more.
 https://docs.djangoproject.com/en/2.2/topics/auth/default/#module-django.contrib.auth.views
 https://docs.djangoproject.com/en/2.2/topics/auth/default/#all-authentication-views
 '''
-
 # Route to register new users
 def register(request):
     # Regular request, display form
@@ -69,29 +67,22 @@ def register(request):
 def menu(request):
     menu = {}
     try:
-        # items = Item.objects.all()
         toppings = Topping.objects.all()
-        # allowed = items[2].toppings.all()
-
         categories = Category.objects.all()
 
         for category in categories:
             menu[category.name] = category.items.all()
-
-    except Item.DoesNotExist:
+    except Category.DoesNotExist:
         raise Http404("Item does not exist")
 
     menu["Toppings"] = toppings
 
-    print(menu)
     context = {
-        "toppings": toppings,
-        "categories": categories,
         "menu": menu
     }
     return render(request, "orders/menu.html", context)
 
-#
+# Individual menu item page, user customizes and adds to cart
 def item(request, item_id):
     try:
         item = Item.objects.get(pk=item_id)
@@ -112,7 +103,7 @@ def cart(request):
     context = {}
     message = None
     items = None
-
+    order = None
 
     if request.user.is_authenticated:
         order_session = request.session.get("user_order")
@@ -127,24 +118,34 @@ def cart(request):
             # orders = user.customer_orders.filter(status__contains="order_placed")
             print(f"WE got orders {orders}")
 
-            selection = Order.objects.filter(customer__pk=user.id, status__status__contains="order_placed").last()
-            print(f"Selection {selection}")
+            order = Order.objects.filter(customer__pk=user.id, status__status__exact="in_cart").last()
 
-            if selection is not None:
-                items = selection.items.all()
+            print(f"Selection {order}")
 
+            if order is not None:
+                request.session["user_order"] = order.id
+                request.session["user_order"] = None
+                items = order.items.all()
+            else:
+                message = "You haven't added any items to your cart yet."
         else:
             message = "You haven't added any items to your cart yet."
 
 
     # https://www.geeksforgeeks.org/ternary-operator-in-python/
     context = {
+        "order": order,
         "items": items,
         "message": message,
     }
 
     return render(request, "orders/cart.html", context)
 
+'''
+Admin pages
+    view_orders -- a list of all customer orders
+    order -- an individual customer's order
+'''
 # Admin view to see all orders placed by customers
 def view_orders(request):
     try:
@@ -175,6 +176,18 @@ def order(request, order_id):
 
 # Process the user's cart and submit the order
 def checkout(request):
+    order_id = request.POST["orderId"]
+    print(f"order_id is {order_id}")
+
+    status = Status.objects.get(status="completed")
+    print(f"test is {status}")
+
+    order = Order.objects.filter(pk=order_id).update(status=status)
+
+
+    print(f"order {order}")
+
+    request.session["user_order"] = None
     return render(request, "orders/index.html")
 
 # Add the item to the user's cart, to be checked out later
@@ -202,24 +215,36 @@ def add_to_cart(request):
     user = User.objects.get(pk=userId)
     print(user)
 
+    # Check to see if an order is already in progress
     stored_order = request.session.get("user_order")
     print(f"DO we have a session order? {stored_order}")
 
+    # No order started, create a new one
     if stored_order is None:
+        status = Status.objects.get(status="in_cart")
+
         order = Order.objects.create(
             customer = user,
+            status = status,
             cost = price
         )
 
+        # Add to session to reference later
         request.session["user_order"] = order.id
+    # There is an order started, retrieve it
     else:
         order = Order.objects.get(pk=stored_order)
 
-
+    # To new/existing order, add the new item
     order.items.add(item)
 
+    # Update cost
     cost = order.calculate_cost()
     print(f"Cost is {cost}")
 
 
     return HttpResponseRedirect(reverse("index"))
+
+def remove_item(request):
+    # print(f"removing item {item.id}")
+    return HttpResponseRedirect(reverse("cart"))
