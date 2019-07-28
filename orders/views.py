@@ -22,7 +22,7 @@ def index(request):
         # context[cart] = orders
 
     context = {
-        # "cart": orders.items.all()
+        # "cart": orders[0].items.all()
     }
     return render(request, "orders/index.html", context)
 
@@ -112,11 +112,27 @@ def cart(request):
     context = {}
     message = None
     items = None
+
+
     if request.user.is_authenticated:
-        order_id = request.session.get("user_order")
-        if order_id is not None:
-            order = Order.objects.get(pk=order_id)
+        order_session = request.session.get("user_order")
+        user = User.objects.get(pk=request.user.id)
+        if order_session is not None:
+            order = Order.objects.get(pk=order_session)
             items = order.items.all()
+        elif user is not None:
+
+            orders = user.customer_orders.all
+            # selection = orders.filter(status__contains="order_placed")
+            # orders = user.customer_orders.filter(status__contains="order_placed")
+            print(f"WE got orders {orders}")
+
+            selection = Order.objects.filter(customer__pk=user.id, status__status__contains="order_placed").last()
+            print(f"Selection {selection}")
+
+            if selection is not None:
+                items = selection.items.all()
+
         else:
             message = "You haven't added any items to your cart yet."
 
