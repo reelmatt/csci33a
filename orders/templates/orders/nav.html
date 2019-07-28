@@ -13,6 +13,7 @@
                 {% else %}
                     <a class="nav-item nav-link" href="{% url 'cart' %}">Cart</a>
                 {% endif %}
+            <p class="nav-item nav-link">Hello, {{user}}</p>
               <a class="nav-item nav-link" href="{% url 'logout' %}">Logout</a>
             {% else %}
                 <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>

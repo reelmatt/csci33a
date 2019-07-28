@@ -21,7 +21,7 @@
                         <td><a href="{% url 'order' order.id %}">{{order}}</a></td>
                         <td>{{order.customer}}</td>
                         <td>{{order.creation_time}}</td>
-                        <td>In progress</td>
+                        <td>{{order.status}}</td>
                     </tr>
                 {% endfor %}
             </tbody>
