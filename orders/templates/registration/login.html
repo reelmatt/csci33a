@@ -16,6 +16,17 @@
 <p>Your username and password didn't match. Please try again.</p>
 {% endif %}
 
+<!-- From Django documentation -->
+<!-- https://docs.djangoproject.com/en/2.2/topics/auth/default/#django.contrib.auth.views.LoginView -->
+{% if next %}
+    {% if user.is_authenticated %}
+    <p>Your account doesn't have access to this page. To proceed,
+    please login with an account that has access.</p>
+    {% else %}
+    <p>Please login to see this page.</p>
+    {% endif %}
+{% endif %}
+
 <form method="POST" action="{% url 'login' %}">
     {% csrf_token %}
     <div class="form-group">
@@ -26,6 +37,7 @@
         <label for="password">Password</label>
         <input type="password" class="form-control" name="password" id="password" placeholder="Password" required>
     </div>
+    <input type="hidden" name="next" value="{{ next }}">
     <button type="submit" class="btn btn-primary">Log in</button>
 </form>
 <p>Don't have an account? <a href="{% url 'register' %}">Sign up for one.</a></p>
