@@ -5,24 +5,20 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.forms import AuthenticationForm
 from django.views.decorators.http import require_http_methods, require_POST
+from django.contrib.auth.decorators import login_required
 
 from django.contrib.auth.models import User
 from .models import Item, Topping, Category, Order, Status
 
 # Display home page
 def index(request):
-
-    if request.user and request.user.is_authenticated:
-        user = User.objects.get(pk=request.user.id)
-        orders = user.customer_orders.all()
-        print(f"User's orders are....")
-        print(orders)
-        print(orders[0].items.all())
-        # context[cart] = orders
+    # Check if customer is logged in, and if any cart items
+    order = get_customer_order(request.user)
 
     context = {
-        # "cart": orders[0].items.all()
+        "cart": order.items.all() if order else None
     }
+
     return render(request, "orders/index.html", context)
 
 '''
@@ -37,25 +33,17 @@ def register(request):
     if request.method == "GET":
         return render(request, "registration/register.html")
 
-    # Otherwise, POSTed form, check validity and create user
-    first = request.POST["firstName"]
-    last = request.POST["lastName"]
-    email = request.POST["email"]
-    username = request.POST["username"]
-    password = request.POST["password"]
-    confirmPassword = request.POST["confirmPassword"]
-
-    # If passwords don't match, return an error
-    if password != confirmPassword:
+    # If passwords don't match, return an error message
+    if request.POST["password"] != request.POST["confirmPassword"]:
         return render(request, "registration/register.html", {"message": "Passwords don't match."})
 
     # Otherwise, add user to database
     user = User.objects.create_user(
-        username=username,
-        email=email,
-        password=password,
-        last_name=last,
-        first_name=first
+        username=request.POST["username"],
+        email=request.POST["email"],
+        password=request.POST["password"],
+        last_name=request.POST["lastName"],
+        first_name=request.POST["firstName"]
     )
 
     # Log them in, and send to homepage
@@ -98,44 +86,36 @@ def item(request, item_id):
 
     return render(request, "orders/item.html", context)
 
-# Show contents of a user's cart
+# Show contents of a user's cart, if logged in
+@login_required(login_url="/login")
 def cart(request):
-    context = {}
+    # Initialze context variables as None
     message = None
-    items = None
     order = None
 
-    if request.user.is_authenticated:
-        order_session = request.session.get("user_order")
-        user = User.objects.get(pk=request.user.id)
-        if order_session is not None:
-            order = Order.objects.get(pk=order_session)
-            items = order.items.all()
-        elif user is not None:
+    # Get session and user IDs to check if they exist
+    order_session = request.session.get("user_order")
+    user = User.objects.get(pk=request.user.id)
 
-            orders = user.customer_orders.all
-            # selection = orders.filter(status__contains="order_placed")
-            # orders = user.customer_orders.filter(status__contains="order_placed")
-            print(f"WE got orders {orders}")
+    # Check if order is stored in session first
+    if order_session is not None:
+        order = Order.objects.get(pk=order_session)
 
-            order = Order.objects.filter(customer__pk=user.id, status__status__exact="in_cart").last()
+    # If not in session, check if user has any orders "in_cart"
+    else:
+        order = get_customer_order(request.user)
 
-            print(f"Selection {order}")
-
-            if order is not None:
-                request.session["user_order"] = order.id
-                request.session["user_order"] = None
-                items = order.items.all()
-            else:
-                message = "You haven't added any items to your cart yet."
-        else:
-            message = "You haven't added any items to your cart yet."
+    # Check if an order was found
+    if order is None:
+        message = "You haven't added any items to your cart yet."
+    elif order_session is None:
+        request.session["user_order"] = order.id
 
 
     # https://www.geeksforgeeks.org/ternary-operator-in-python/
     context = {
         "order": order,
-        "items": items,
+        "items": order.items.all() if order else None,
         "message": message,
     }
 
@@ -194,6 +174,11 @@ def checkout(request):
 # https://docs.djangoproject.com/en/2.2/topics/http/decorators/
 @require_POST
 def add_to_cart(request):
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect(reverse("login") + "?next=/menu")
+
+    if request.POST is None:
+        return HttpResponseRedirect(reverse("menu"))
     itemId = request.POST["itemId"]
     price = request.POST["price"]
     values = request.POST.getlist('toppings[]')
@@ -243,8 +228,22 @@ def add_to_cart(request):
     print(f"Cost is {cost}")
 
 
-    return HttpResponseRedirect(reverse("index"))
+    return HttpResponseRedirect(reverse("menu"))
 
 def remove_item(request):
     # print(f"removing item {item.id}")
     return HttpResponseRedirect(reverse("cart"))
+
+'''
+Helper methods:
+    -- get_customer_order
+'''
+def get_customer_order(user):
+    if user.is_authenticated:
+        order = Order.objects.filter(customer__id__exact=user.id, status__status__exact="in_cart").first()
+        print(f"User's orders are....")
+        print(order)
+        return order
+        # return order.items.all() if order else None
+    else:
+        return None
