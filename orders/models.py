@@ -14,16 +14,24 @@ class Topping(models.Model):
 # Section of menu (Pizza, Sicilian, Subs, etc.)
 class Category(models.Model):
     name = models.CharField(max_length=64)
+    add_on_cost = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     # sizes = models.ForeignKey(Size, on_delete=models.CASCADE, limit_choices_to={})
 
     def __str__(self):
         return f"{self.name}"
 
+class Size(models.Model):
+    size = models.CharField(max_length=32)
+
+    def __str__(self):
+        return f"{self.size}"
+
 # An individual menu item
 class Item(models.Model):
+
     name = models.CharField(max_length=64)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="items")
-    # toppings = models.ManyToManyField(Topping, blank=True, related_name="items", limit_choices_to={"allowed": True})
+    selected_toppings = models.ManyToManyField(Topping, blank=True, null=True, related_name="items")
     num_toppings = models.IntegerField(validators = [
         MinValueValidator(0),
         MaxValueValidator(5)
@@ -31,9 +39,22 @@ class Item(models.Model):
     price_individual = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     price_small = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     price_large = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    # price_selection = models.ForeignKey(Size, on_delete=models.CASCADE, related_name="items")
+
+
+    def get_toppings(self):
+        return Topping.objects.filter(allowed_on__id__exact=self.id).all()
 
     def __str__(self):
         return f"{self.name}"
+
+class CartItem(models.Model):
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="cart_items")
+    toppings = models.ManyToManyField(Topping, blank=True, related_name="cart_items")
+    size = models.ForeignKey(Size, on_delete=models.CASCADE, related_name="cart_items")
+
+    def __str__(self):
+        return f"{self.item} - {self.size}"
 
 # An order's status
 class Status(models.Model):
@@ -48,7 +69,7 @@ class Status(models.Model):
 class Order(models.Model):
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="customer_orders")
     cost = models.DecimalField(max_digits=6, decimal_places=2)
-    items = models.ManyToManyField(Item, blank=True, related_name="orders")
+    items = models.ManyToManyField(CartItem, blank=True, related_name="orders")
     status = models.ForeignKey(Status, on_delete=models.CASCADE, null=True, blank=True, related_name="orders")
     creation_time = models.DateTimeField(auto_now_add=True)
     modified_time = models.DateTimeField(auto_now=True)
@@ -57,7 +78,7 @@ class Order(models.Model):
         items = self.items.all()
         sum = 0
         for item in items:
-            sum += item.price_small
+            sum += item.item.price_small
         print(f"DO we have items in correct form {items}")
         # self.cost = sum(items)
         print(f"IN CALCULATE COST, value is {sum}")
