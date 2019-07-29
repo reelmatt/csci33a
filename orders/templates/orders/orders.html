@@ -26,6 +26,7 @@
                 <th scope="col">Customer</th>
               {% endif %}
               <th scope="col">Ordered Time</th>
+              <th scope="col">Amount</th>
               <th scope="col">Status</th>
           </tr>
           <tbody>
@@ -36,6 +37,7 @@
                         <td>{{order.customer}}</td>
                       {% endif %}
                       <td>{{order.creation_time}}</td>
+                      <td>${{order.cost}}</td>
                       <td>{{order.status}}</td>
                   </tr>
               {% endfor %}

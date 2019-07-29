@@ -19,7 +19,7 @@
 </ul>
 <h5>Status: {{order.status}}</h5>
 
-
+{% if user.is_staff %}
 <form method="POST" action="{% url 'update_order_status' order.id %}">
     {% csrf_token %}
     <div class="form-group">
@@ -33,6 +33,6 @@
 
     <button type="submit" class="btn btn-primary">Update status</button>
 </form>
-
+{% endif %}
 
 {% endblock %}
