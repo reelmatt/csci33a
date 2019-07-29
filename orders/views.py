@@ -75,7 +75,19 @@ def menu(request):
 def item(request, item_id):
     try:
         item = Item.objects.get(pk=item_id)
-        return render(request, "orders/item.html", {"item": item})
+        sizes = Size.objects.all()
+        selection = []
+        for size in sizes:
+            tmp = f"price_{size.size}"
+            selection.append((size, getattr(item, tmp)))
+
+        context = {
+            "item": item,
+            "sizes": sizes,
+            "selection": selection,
+        }
+        print(selection)
+        return render(request, "orders/item.html", context)
     except Item.DoesNotExist:
         messages.add_message(request, messages.ERROR, "That item does not exist.")
         return HttpResponseRedirect(reverse("menu"))
@@ -94,7 +106,7 @@ def add_to_cart(request):
     # Pull in form info
     item_id = request.POST["itemId"]
     selected_toppings = request.POST.getlist('toppings[]')
-    size = request.POST["size"]
+    size = request.POST.get("size")
 
     # If no user, send to login and redirect back to menu
     if not request.user.is_authenticated:
@@ -108,6 +120,9 @@ def add_to_cart(request):
         return HttpResponseRedirect(reverse("menu"))
 
     # Check user selected a valid number of toppings
+    if not size:
+        messages.add_message(request, messages.ERROR, f"Please select a size option.")
+        return HttpResponseRedirect(reverse("menu") + f"/{item_id}")
     if not valid_num_toppings(item, selected_toppings):
         messages.add_message(request, messages.ERROR, f"This item can only have {item.num_toppings} toppings. You selected {len(selected_toppings)}.")
         return HttpResponseRedirect(reverse("menu") + f"/{item_id}")
@@ -136,10 +151,14 @@ def cart(request):
     order_session = request.session.get("user_order")
 
     # Get order saved in session, or get last saved cart
-    if order_session is not None:
-        order = Order.objects.get(pk=order_session)
-    else:
-        order = get_customer_order(request.user)
+    try:
+        if order_session is not None:
+            order = Order.objects.get(pk=order_session)
+        else:
+            order = get_customer_order(request.user)
+    except Order.DoesNotExist:
+        messages.add_message(request, messages.ERROR, "Sorry, but we could not find your order.")
+        request.session["user_order"] = None
 
     # If an order was found, and not in session, save it there
     if order and order_session is None:
@@ -159,6 +178,8 @@ def checkout(request):
 
     # Reset session for next order
     request.session["user_order"] = None
+
+    messages.add_message(request, messages.SUCCESS, "You have successfully placed your order. Check your order history to see when it is ready.")
     return render(request, "orders/index.html")
 
 # Remove item(s) from a user's cart
