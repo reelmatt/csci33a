@@ -67,7 +67,7 @@ class CartItem(models.Model):
         return base_cost + add_on_cost
 
     def __str__(self):
-        return f"{self.item} - {self.size}"
+        return f"{self.item} ({self.size}) - ${self.cost()}"
 
 # An order's status
 class Status(models.Model):
