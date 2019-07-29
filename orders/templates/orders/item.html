@@ -13,19 +13,21 @@
       {% csrf_token %}
       <div class="form-group">
           <h2>Choose a size</h2>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="size" id="sizeSmall" value="small" checked>
-            <label class="form-check-label" for="priceSmall">
-                Small (${{item.price_small}})
-            </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="size" id="sizeLarge" value="large">
-                <label class="form-check-label" for="priceLarge">
-                    Large (${{item.price_large}})
+          
+          {% for size, price in selection %}
+            {% if price %}
+              <div class="form-check">
+
+                <input class="form-check-input" type="radio" name="size" id="{{size}}" value="{{size}}">
+                <label class="form-check-label" for="{{size}}">
+                    {{size.size|capfirst}} (${{price}})
                 </label>
-            </div>
+                </div>
+                {% endif %}
+          {% endfor %}
+
       </div>
+
 
       {% if item.toppings.all %}
         <div class="form-group">
