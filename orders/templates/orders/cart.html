@@ -17,7 +17,7 @@
           <div class="form-check">
               <input class="form-check-input" type="checkbox" name="items[]" id="item-{{item.id}}" value="{{item.id}}">
               <label class="form-check-label" for="item-{{item.id}}">
-                  {{item}}, ${{item.price_small}}
+                  {{item}}, ${{item.price_small}} -- {{item.toppings.all}}
               </label>
           </div>
       {% endfor %}

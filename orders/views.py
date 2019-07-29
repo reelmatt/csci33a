@@ -7,10 +7,11 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.views.decorators.http import require_http_methods, require_POST
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
+from django.db.models import Sum
 from django.contrib import messages
 
 from django.contrib.auth.models import User
-from .models import Item, Topping, Category, Order, Status
+from .models import Item, Topping, Category, Order, Status, CartItem, Size
 
 # Display home page
 def index(request):
@@ -69,20 +70,14 @@ Menu and menu item pages
 def menu(request):
     menu = {}
     try:
-        toppings = Topping.objects.all()
         categories = Category.objects.all()
 
         for category in categories:
             menu[category.name] = category.items.all()
     except Category.DoesNotExist:
-        raise Http404("Item does not exist")
+        messages.add_message(request, messages.ERROR, "That category does not exist.")
 
-    menu["Toppings"] = toppings
-
-    context = {
-        "menu": menu
-    }
-    return render(request, "orders/menu.html", context)
+    return render(request, "orders/menu.html", {"menu": menu})
 
 # Individual menu item page, user customizes and adds to cart
 def item(request, item_id):
@@ -107,22 +102,25 @@ Cart functionality
 @require_POST
 def add_to_cart(request):
     # Pull in item ID
-    itemId = request.POST["itemId"]
+    item_id = request.POST["itemId"]
 
     # If no user, send to login and redirect back to menu
     if not request.user.is_authenticated:
-        return HttpResponseRedirect(reverse("login") + f"?next=/menu/{itemId}")
+        return HttpResponseRedirect(reverse("login") + f"?next=/menu/{item_id}")
 
     # Find item in database
     try:
-        item = Item.objects.get(pk=itemId)
+        item = Item.objects.get(pk=item_id)
     except Item.DoesNotExist:
         messages.add_message(request, messages.ERROR, "That item does not exist.")
         return HttpResponseRedirect(reverse("menu"))
 
-
-    price = request.POST["price"]
-    values = request.POST.getlist('toppings[]')
+    # Check user selected the right number of toppings
+    selected_toppings = request.POST.getlist('toppings[]')
+    if item.num_toppings != len(selected_toppings):
+        error = f"This item can only have {item.num_toppings} toppings. You selected {len(selected_toppings)}."
+        messages.add_message(request, messages.ERROR, error)
+        return HttpResponseRedirect(reverse("menu") + f"/{item_id}")
 
     # Check to see if an order is already in progress
     session_order = request.session.get("user_order")
@@ -135,19 +133,31 @@ def add_to_cart(request):
         order = Order.objects.create(
             customer = User.objects.get(pk=request.user.id),
             status = Status.objects.get(status="in_cart"),
-            cost = price
+            cost = 0
         )
 
         # Add to session to reference later
         request.session["user_order"] = order.id
 
+    toppings = Topping.objects.filter(name__in=selected_toppings)
+    print(f"Toppings selected are {toppings}")
 
-    # To new/existing order, add the new item
-    order.items.add(item)
+    # Create new CartItem
+    cart_item = CartItem.objects.create(
+        size = Size.objects.get(size="small"),
+        item = item,
+    )
+    cart_item.toppings.set(toppings)
 
+    # Add CartItem to Order
+    order.items.add(cart_item)
+
+
+    order.cost = float(order.cost) + float(request.POST["price"])
+    order.save()
     # Update cost
-    cost = order.calculate_cost()
-    print(f"Cost is {cost}")
+    # cost = order.calculate_cost()
+    # print(f"Cost is {cost}")
     messages.add_message(request, messages.SUCCESS, f"Added {item} to your cart.")
     return HttpResponseRedirect(reverse("menu"))
 
@@ -177,15 +187,10 @@ def cart(request):
 # Process the user's cart and submit the order
 def checkout(request):
     order_id = request.POST["orderId"]
-    print(f"order_id is {order_id}")
 
     status = Status.objects.get(status="completed")
-    print(f"test is {status}")
 
     order = Order.objects.filter(pk=order_id).update(status=status)
-
-
-    print(f"order {order}")
 
     request.session["user_order"] = None
     return render(request, "orders/index.html")
@@ -194,23 +199,26 @@ def checkout(request):
 # Remove item(s) from a user's cart
 @require_POST
 def remove_item(request):
-    print(f"items to remove are {request.POST.getlist('items[]')}")
+    order_id = request.POST["orderId"]
+    to_delete = request.POST.getlist('items[]')
 
     try:
-        order = Order.objects.get(pk=request.POST["orderId"])
+        order = Order.objects.get(pk=order_id)
+        items = CartItem.objects.filter(orders__pk__exact=order_id, pk__in=to_delete).all()
 
-        for item_id in request.POST.getlist('items[]'):
-            try:
-                item = Item.objects.get(pk=item_id)
-                order.items.remove(item)
-                messages.add_message(request, messages.SUCCESS, f"Removed {item} from your cart.")
-            except Item.DoesNotExist:
-                messages.add_message(request, messages.WARNING, f"Could not find item {item}.")
+        # cost = sum(items.item.price_small, 0)
+        cost = items.aggregate(Sum('item__price_small'))
+        print(f"\n\ncost aggregate is {cost}")
+        print(f"\n\ncost aggregate is {cost['item__price_small__sum']}")
+        order.cost = order.cost - cost['item__price_small__sum']
+        order.save()
+        items.delete()
 
+        messages.add_message(request, messages.SUCCESS, f"Removed items from your cart.")
     except Order.DoesNotExist:
         messages.add_message(request, messages.ERROR, f"That order does not exist. Try again.")
-
-
+    except CartItem.DoesNotExist:
+        messages.add_message(request, messages.WARNING, f"Could not find item {item}.")
 
     return HttpResponseRedirect(reverse("cart"))
 
@@ -224,11 +232,17 @@ def view_orders(request):
     # Initialize to None in case there is an exception
     orders = None
 
-    # Try and find orders that have been placed, in_progress, or completed
-    try:
-        orders = Order.objects.exclude(status__status__exact="in_cart").all()
-    except Order.DoesNotExist:
-        messages.add_message(request, messages.WARNING, f"Could not find any orders. Try again later.")
+    if request.user.is_staff:
+        # Try and find orders that have been placed, in_progress, or completed
+        try:
+            orders = Order.objects.exclude(status__status__exact="in_cart").all()
+        except Order.DoesNotExist:
+            messages.add_message(request, messages.WARNING, f"Could not find any orders. Try again later.")
+    elif request.user.is_authenticated:
+        try:
+            orders = Order.objects.filter(customer__id__exact=request.user.id).exclude(status__status__exact="in_cart").all()
+        except Order.DoesNotExist:
+            messages.add_message(request, messages.WARNING, f"Could not find any orders. Try again later.")
 
     return render(request, "orders/orders.html", {"orders": orders})
 
