@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.contrib.auth.forms import AuthenticationForm
 from django.views.decorators.http import require_http_methods, require_POST
 from django.contrib.auth.decorators import login_required
+from django.db import IntegrityError
 
 from django.contrib.auth.models import User
 from .models import Item, Topping, Category, Order, Status
@@ -23,9 +24,11 @@ def index(request):
 
 '''
 Login/logout views are handled using the Django built-in authentication views.
-See documentation for more.
+HTML templates are found under templates/registration. See documentation for more.
 https://docs.djangoproject.com/en/2.2/topics/auth/default/#module-django.contrib.auth.views
 https://docs.djangoproject.com/en/2.2/topics/auth/default/#all-authentication-views
+
+Register route is provided below.
 '''
 # Route to register new users
 def register(request):
@@ -35,22 +38,30 @@ def register(request):
 
     # If passwords don't match, return an error message
     if request.POST["password"] != request.POST["confirmPassword"]:
-        return render(request, "registration/register.html", {"message": "Passwords don't match."})
+        return render(request, "registration/register.html", error_message("Passwords don't match."))
 
     # Otherwise, add user to database
-    user = User.objects.create_user(
-        username=request.POST["username"],
-        email=request.POST["email"],
-        password=request.POST["password"],
-        last_name=request.POST["lastName"],
-        first_name=request.POST["firstName"]
-    )
+    try:
+        user = User.objects.create_user(
+            username=request.POST["username"],
+            email=request.POST["email"],
+            password=request.POST["password"],
+            last_name=request.POST["lastName"],
+            first_name=request.POST["firstName"]
+        )
 
-    # Log them in, and send to homepage
-    login(request, user)
-    return HttpResponseRedirect(reverse("index"))
+        # Log them in, and send to homepage
+        login(request, user)
+        return HttpResponseRedirect(reverse("index"))
+    # Username is not unique, throw error
+    except IntegrityError as e:
+        return render(request, "registration/register.html", error_message("That username already exists."))
 
-
+'''
+Menu and menu item pages
+    --menu
+    --item
+'''
 # Display menu with list of items
 def menu(request):
     menu = {}
@@ -86,90 +97,13 @@ def item(request, item_id):
 
     return render(request, "orders/item.html", context)
 
-# Show contents of a user's cart, if logged in
-@login_required(login_url="/login")
-def cart(request):
-    # Initialze context variables as None
-    message = None
-    order = None
-
-    # Get session and user IDs to check if they exist
-    order_session = request.session.get("user_order")
-    user = User.objects.get(pk=request.user.id)
-
-    # Check if order is stored in session first
-    if order_session is not None:
-        order = Order.objects.get(pk=order_session)
-
-    # If not in session, check if user has any orders "in_cart"
-    else:
-        order = get_customer_order(request.user)
-
-    # Check if an order was found
-    if order is None:
-        message = "You haven't added any items to your cart yet."
-    elif order_session is None:
-        request.session["user_order"] = order.id
-
-
-    # https://www.geeksforgeeks.org/ternary-operator-in-python/
-    context = {
-        "order": order,
-        "items": order.items.all() if order else None,
-        "message": message,
-    }
-
-    return render(request, "orders/cart.html", context)
-
 '''
-Admin pages
-    view_orders -- a list of all customer orders
-    order -- an individual customer's order
+Cart functionality
+    --add_to_cart
+    --cart
+    --checkout
+    --remove_item
 '''
-# Admin view to see all orders placed by customers
-def view_orders(request):
-    try:
-        orders = Order.objects.all()
-    except Order.DoesNotExist:
-        raise Http404("Order does not exist")
-
-    print(orders)
-    context = {
-        "orders": orders,
-    }
-    return render(request, "orders/orders.html", context)
-
-# Admin view to see an individual order placed by a customer
-def order(request, order_id):
-    try:
-        order = Order.objects.get(pk=order_id)
-    except Order.DoesNotExist:
-        raise Http404("Order does not exist")
-
-    print(order)
-    print(order.items.all())
-    context = {
-        "order": order,
-    }
-
-    return render(request, "orders/order.html", context)
-
-# Process the user's cart and submit the order
-def checkout(request):
-    order_id = request.POST["orderId"]
-    print(f"order_id is {order_id}")
-
-    status = Status.objects.get(status="completed")
-    print(f"test is {status}")
-
-    order = Order.objects.filter(pk=order_id).update(status=status)
-
-
-    print(f"order {order}")
-
-    request.session["user_order"] = None
-    return render(request, "orders/index.html")
-
 # Add the item to the user's cart, to be checked out later
 # https://docs.djangoproject.com/en/2.2/topics/http/decorators/
 @require_POST
@@ -230,9 +164,95 @@ def add_to_cart(request):
 
     return HttpResponseRedirect(reverse("menu"))
 
+# Show contents of a user's cart, if logged in
+@login_required(login_url="/login")
+def cart(request):
+    # Initialze context variables as None
+    message = None
+    order = None
+
+    # Get session and user IDs to check if they exist
+    order_session = request.session.get("user_order")
+    user = User.objects.get(pk=request.user.id)
+
+    # Check if order is stored in session first
+    if order_session is not None:
+        order = Order.objects.get(pk=order_session)
+
+    # If not in session, check if user has any orders "in_cart"
+    else:
+        order = get_customer_order(request.user)
+
+    # Check if an order was found
+    if order is None:
+        message = "You haven't added any items to your cart yet."
+    elif order_session is None:
+        request.session["user_order"] = order.id
+
+
+    # https://www.geeksforgeeks.org/ternary-operator-in-python/
+    context = {
+        "order": order,
+        "items": order.items.all() if order else None,
+        "message": message,
+    }
+
+    return render(request, "orders/cart.html", context)
+
+# Process the user's cart and submit the order
+def checkout(request):
+    order_id = request.POST["orderId"]
+    print(f"order_id is {order_id}")
+
+    status = Status.objects.get(status="completed")
+    print(f"test is {status}")
+
+    order = Order.objects.filter(pk=order_id).update(status=status)
+
+
+    print(f"order {order}")
+
+    request.session["user_order"] = None
+    return render(request, "orders/index.html")
+
+
+
 def remove_item(request):
     # print(f"removing item {item.id}")
     return HttpResponseRedirect(reverse("cart"))
+
+'''
+Admin pages
+    view_orders -- a list of all customer orders
+    order -- an individual customer's order
+'''
+# Admin view to see all orders placed by customers
+def view_orders(request):
+    try:
+        orders = Order.objects.all()
+    except Order.DoesNotExist:
+        raise Http404("Order does not exist")
+
+    print(orders)
+    context = {
+        "orders": orders,
+    }
+    return render(request, "orders/orders.html", context)
+
+# Admin view to see an individual order placed by a customer
+def order(request, order_id):
+    try:
+        order = Order.objects.get(pk=order_id)
+    except Order.DoesNotExist:
+        raise Http404("Order does not exist")
+
+    print(order)
+    print(order.items.all())
+    context = {
+        "order": order,
+    }
+
+    return render(request, "orders/order.html", context)
 
 '''
 Helper methods:
@@ -247,3 +267,6 @@ def get_customer_order(user):
         # return order.items.all() if order else None
     else:
         return None
+
+def error_message(message):
+    return {"error": message}
