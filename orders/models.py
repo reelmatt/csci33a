@@ -24,14 +24,14 @@ class Size(models.Model):
     size = models.CharField(max_length=32)
 
     def __str__(self):
-        return f"{self.size}"
+        return f"price_{self.size}"
 
 # An individual menu item
 class Item(models.Model):
 
     name = models.CharField(max_length=64)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="items")
-    selected_toppings = models.ManyToManyField(Topping, blank=True, null=True, related_name="items")
+    selected_toppings = models.ManyToManyField(Topping, blank=True, related_name="items")
     num_toppings = models.IntegerField(validators = [
         MinValueValidator(0),
         MaxValueValidator(5)
