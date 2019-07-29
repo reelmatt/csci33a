@@ -13,25 +13,18 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from .models import Item, Topping, Category, Order, Status, CartItem, Size
 
-# Display home page
-def index(request):
-    # Check if customer is logged in, and if any cart items
-    order = get_customer_order(request.user)
-
-    context = {
-        "cart": order.items.all() if order else None
-    }
-
-    return render(request, "orders/index.html", context)
-
 '''
 Login/logout views are handled using the Django built-in authentication views.
 HTML templates are found under templates/registration. See documentation for more.
 https://docs.djangoproject.com/en/2.2/topics/auth/default/#module-django.contrib.auth.views
 https://docs.djangoproject.com/en/2.2/topics/auth/default/#all-authentication-views
 
-Register route is provided below.
+Index/Register routes provided below.
 '''
+# Display home page
+def index(request):
+    return render(request, "orders/index.html")
+
 # Route to register new users
 def register(request):
     # Regular request, display form
@@ -63,39 +56,36 @@ def register(request):
 
 '''
 Menu and menu item pages
-    --menu: Display a list of all categories and items offered by Pinnochio's
-    --item: Individual page offering customer to add/customize item to their cart
+    menu: Display a list of all categories and items offered by Pinnochio's
+    item: Individual page offering customer to add/customize item to their cart
 '''
 # Display menu with list of items
 def menu(request):
     menu = {}
-    try:
-        categories = Category.objects.all()
 
-        for category in categories:
-            menu[category.name] = category.items.all()
-    except Category.DoesNotExist:
-        messages.add_message(request, messages.ERROR, "That category does not exist.")
+    # Add all items in all categories to menu context
+    categories = Category.objects.all()
+    for category in categories:
+        menu[category.name] = category.items.all()
 
     return render(request, "orders/menu.html", {"menu": menu})
 
 # Individual menu item page, user customizes and adds to cart
+# If item exists, pass info to page. Otherwise, send back to menu with error.
 def item(request, item_id):
-    # See if the item exists, and pass info to page
     try:
         item = Item.objects.get(pk=item_id)
         return render(request, "orders/item.html", {"item": item})
-    # Otherwsie, send back to menu page with error message
     except Item.DoesNotExist:
         messages.add_message(request, messages.ERROR, "That item does not exist.")
         return HttpResponseRedirect(reverse("menu"))
 
 '''
 Cart functionality
-    --add_to_cart
-    --cart
-    --checkout
-    --remove_item
+    add_to_cart: Add item, and any extras, to customers Order (and cart)
+           cart: Load the customer's current order
+       checkout: Mark the customer's order as 'order_placed'
+    remove_item: Delete a CartItem from the customer's order
 '''
 # Add the item to the user's cart, to be checked out later
 # https://docs.djangoproject.com/en/2.2/topics/http/decorators/
@@ -110,28 +100,29 @@ def add_to_cart(request):
     if not request.user.is_authenticated:
         return HttpResponseRedirect(reverse("login") + f"?next=/menu/{item_id}")
 
-    # Find item in database
+    # Find menu item in database
     try:
         item = Item.objects.get(pk=item_id)
     except Item.DoesNotExist:
-        messages.add_message(request, messages.ERROR, "That item does not exist.")
+        messages.add_message(request, messages.ERROR, "That menu item does not exist.")
         return HttpResponseRedirect(reverse("menu"))
 
-    # Check user selected the right number of toppings
-
+    # Check user selected a valid number of toppings
     if not valid_num_toppings(item, selected_toppings):
-        error = f"This item can only have {item.num_toppings} toppings. You selected {len(selected_toppings)}."
-        messages.add_message(request, messages.ERROR, error)
+        messages.add_message(request, messages.ERROR, f"This item can only have {item.num_toppings} toppings. You selected {len(selected_toppings)}.")
         return HttpResponseRedirect(reverse("menu") + f"/{item_id}")
 
+    # All info is valid, so add create/access CartItem and Order
     order = get_session_order(request)
     cart_item = new_cart_item(item, size, selected_toppings)
 
-    # Add CartItem to Order and calculate cost
+    # Add new CartItem to the Order
     order.items.add(cart_item)
     order.cost = order.cost + cart_item.cost()
     order.save()
 
+    print(f"\n\nADDING TO CART, order cost is {order.cost}")
+    # Display a success message
     messages.add_message(request, messages.SUCCESS, f"Added {item} to your cart.")
     return HttpResponseRedirect(reverse("menu"))
 
@@ -141,7 +132,7 @@ def cart(request):
     # Initialze order variable as None
     order = None
 
-    # Get session to check if they exist
+    # Get session to check if order exists
     order_session = request.session.get("user_order")
 
     # Get order saved in session, or get last saved cart
@@ -157,19 +148,23 @@ def cart(request):
     return render(request, "orders/cart.html", {"order": order})
 
 # Process the user's cart and submit the order
+@require_POST
 def checkout(request):
+    # Get the order to checkout
     order_id = request.POST["orderId"]
 
-    status = Status.objects.get(status="completed")
-
+    # Update status in database
+    status = Status.objects.get(status="order_placed")
     order = Order.objects.filter(pk=order_id).update(status=status)
 
+    # Reset session for next order
     request.session["user_order"] = None
     return render(request, "orders/index.html")
 
 # Remove item(s) from a user's cart
 @require_POST
 def remove_item(request):
+    # Get order and items to delete
     order_id = request.POST["orderId"]
     to_delete = request.POST.getlist('items[]')
 
@@ -177,31 +172,36 @@ def remove_item(request):
         order = Order.objects.get(pk=order_id)
         items = CartItem.objects.filter(orders__pk__exact=order_id, pk__in=to_delete).all()
 
+        # Calculate price of all items being removed
         cost = 0
         for item in items:
             cost = cost + item.cost()
 
+        # Update the order cost, and remove items from order
         order.cost = order.cost - cost
         order.save()
         items.delete()
-
-        messages.add_message(request, messages.SUCCESS, f"Removed items from your cart.")
     except Order.DoesNotExist:
         messages.add_message(request, messages.ERROR, f"That order does not exist. Try again.")
     except CartItem.DoesNotExist:
         messages.add_message(request, messages.WARNING, f"Could not find item {item}.")
 
+    messages.add_message(request, messages.SUCCESS, f"Removed items from your cart.")
     return HttpResponseRedirect(reverse("cart"))
 
 '''
 Admin pages
-    view_orders -- a list of all customer orders
-    order -- an individual customer's order
+              order: an individual order
+update_order_status: change the status of a given order
+                        ('order_placed', 'in_progress', 'completed')
+        view_orders: a list of orders (admin = all orders; customer = personal orders)
+
 '''
 # Admin view to see all orders placed by customers
 def view_orders(request):
     # Initialize to None in case there is an exception
     orders = None
+
 
     if request.user.is_staff:
         # Try and find orders that have been placed, in_progress, or completed
@@ -282,10 +282,18 @@ def get_session_order(request):
     return order
 
 def valid_num_toppings(item, toppings):
-    if item.num_toppings != len(toppings):
-        return False
 
-    return True
+    str = item.category.name
+    print(f"\n\n{str}")
+    print(f"bool test is {'Pizzas' in str}")
+    if "Pizzas" in str:
+        if item.num_toppings == len(toppings):
+            return True
+    elif item.num_toppings >= len(toppings):
+        print(f"OTHER and numbers okay, {item.num_toppings} >= {len(toppings)}")
+        return True
+
+    return False
 
 
 
