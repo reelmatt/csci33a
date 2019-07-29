@@ -4,30 +4,34 @@
     Order
 {% endblock %}
 
+{% block pagehead %}
+    {{order}}
+{% endblock %}
+
 {% block body %}
-<h1>{{order}}</h1>
+
 <h5>Placed by {{order.customer}} at {{order.creation_time}}</h5>
-<h5>Status: {{order.status}}</h5>
 <h5>Order total: ${{order.cost}}</h5>
 <ul>
     {% for item in order.items.all %}
       <li>{{item}}</li>
     {% endfor %}
 </ul>
+<h5>Status: {{order.status}}</h5>
 
 
-<form method="POST" action="{% url 'add_to_cart' %}">
+<form method="POST" action="{% url 'update_order_status' order.id %}">
     {% csrf_token %}
     <div class="form-group">
-    {% for topping in toppings %}
-      <div class="form-check">
-        <input class="form-check-input" type="checkbox" name="toppings[]" value="{{topping}}" id="{{topping}}">
-        <label class="form-check-label" for="{{topping}}">{{topping}}</label>
-        </div>
-    {% endfor %}
+      <label for="orderStatus">Status</label>
+      <select class="form-control" name="orderStatus" id="orderStatus">
+          {% for status in statuses %}
+            <option value="{{status.status}}" {% if status == order.status %}selected{% endif %}>{{status}}</option>
+          {% endfor %}
+      </select>
     </div>
 
-    <button type="submit" class="btn btn-primary">Add to cart</button>
+    <button type="submit" class="btn btn-primary">Update status</button>
 </form>
 
 
