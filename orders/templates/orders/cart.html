@@ -4,25 +4,33 @@
     Cart
 {% endblock %}
 
+{% block pagehead %}
+  Cart
+{% endblock %}
+
 {% block body %}
-<h1>Cart</h1>
 
-{% for item in order.items.all %}
-    <p>{{item}}, <a href="{% url 'remove_item'%}">Delete item</a></p>
+{% if order.items.all %}
+  <form method="POST" action="{% url 'checkout' %}">
+      {% csrf_token %}
+      {% for item in order.items.all %}
+          <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="items[]" id="item-{{item.id}}" value="{{item.id}}">
+              <label class="form-check-label" for="item-{{item.id}}">
+                  {{item}}, ${{item.price_small}}
+              </label>
+          </div>
+      {% endfor %}
 
-    <form method="POST" action="{% url 'checkout' %}">
-        {% csrf_token %}
-        <div class="form-group">
-            <input type="hidden" id="orderId" name="orderId" value="{{order.id}}">
-        </div>
+      <div class="form-group">
+          <input type="hidden" id="orderId" name="orderId" value="{{order.id}}">
+      </div>
 
-        <button type="submit" class="btn btn-primary">Checkout</button>
-    </form>
-{% empty %}
-    {{message}}
-{% endfor %}
-
-
-
+      <button type="submit" formaction="/remove_item" class="btn btn-secondary">Remove selected items</button>
+      <button type="submit" class="btn btn-primary">Checkout (${{order.cost}})</button>
+  </form>
+{% else %}
+  <p>Your cart doesn't have any items in it. Check out the <a href="{% url 'menu' %}">menu</a> to start.</p>
+{% endif %}
 
 {% endblock %}
