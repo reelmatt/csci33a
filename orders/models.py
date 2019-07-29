@@ -53,6 +53,19 @@ class CartItem(models.Model):
     toppings = models.ManyToManyField(Topping, blank=True, related_name="cart_items")
     size = models.ForeignKey(Size, on_delete=models.CASCADE, related_name="cart_items")
 
+    def cost(self):
+        base_cost = getattr(self.item, f"price_{self.size}")
+        print(f"the cart item is {base_cost}")
+
+        if self.item.category.add_on_cost:
+            add_on_cost = self.item.category.add_on_cost * len(self.toppings.all())
+        else:
+            add_on_cost = 0
+
+        print(f"\nAdd on cost is {self.item.category.add_on_cost} * {len(self.toppings.all())} = {add_on_cost}")
+
+        return base_cost + add_on_cost
+
     def __str__(self):
         return f"{self.item} - {self.size}"
 

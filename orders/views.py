@@ -63,8 +63,8 @@ def register(request):
 
 '''
 Menu and menu item pages
-    --menu
-    --item
+    --menu: Display a list of all categories and items offered by Pinnochio's
+    --item: Individual page offering customer to add/customize item to their cart
 '''
 # Display menu with list of items
 def menu(request):
@@ -101,8 +101,10 @@ Cart functionality
 # https://docs.djangoproject.com/en/2.2/topics/http/decorators/
 @require_POST
 def add_to_cart(request):
-    # Pull in item ID
+    # Pull in form info
     item_id = request.POST["itemId"]
+    selected_toppings = request.POST.getlist('toppings[]')
+    size = request.POST["size"]
 
     # If no user, send to login and redirect back to menu
     if not request.user.is_authenticated:
@@ -116,48 +118,20 @@ def add_to_cart(request):
         return HttpResponseRedirect(reverse("menu"))
 
     # Check user selected the right number of toppings
-    selected_toppings = request.POST.getlist('toppings[]')
-    if item.num_toppings != len(selected_toppings):
+
+    if not valid_num_toppings(item, selected_toppings):
         error = f"This item can only have {item.num_toppings} toppings. You selected {len(selected_toppings)}."
         messages.add_message(request, messages.ERROR, error)
         return HttpResponseRedirect(reverse("menu") + f"/{item_id}")
 
-    # Check to see if an order is already in progress
-    session_order = request.session.get("user_order")
+    order = get_session_order(request)
+    cart_item = new_cart_item(item, size, selected_toppings)
 
-    # There is an order started, retrieve it
-    if session_order:
-        order = Order.objects.get(pk=session_order)
-    # No order started, create a new one
-    else:
-        order = Order.objects.create(
-            customer = User.objects.get(pk=request.user.id),
-            status = Status.objects.get(status="in_cart"),
-            cost = 0
-        )
-
-        # Add to session to reference later
-        request.session["user_order"] = order.id
-
-    toppings = Topping.objects.filter(name__in=selected_toppings)
-    print(f"Toppings selected are {toppings}")
-
-    # Create new CartItem
-    cart_item = CartItem.objects.create(
-        size = Size.objects.get(size="small"),
-        item = item,
-    )
-    cart_item.toppings.set(toppings)
-
-    # Add CartItem to Order
+    # Add CartItem to Order and calculate cost
     order.items.add(cart_item)
-
-
-    order.cost = float(order.cost) + float(request.POST["price"])
+    order.cost = order.cost + cart_item.cost()
     order.save()
-    # Update cost
-    # cost = order.calculate_cost()
-    # print(f"Cost is {cost}")
+
     messages.add_message(request, messages.SUCCESS, f"Added {item} to your cart.")
     return HttpResponseRedirect(reverse("menu"))
 
@@ -170,11 +144,9 @@ def cart(request):
     # Get session to check if they exist
     order_session = request.session.get("user_order")
 
-    # Check if order is stored in session first
+    # Get order saved in session, or get last saved cart
     if order_session is not None:
         order = Order.objects.get(pk=order_session)
-
-    # If not in session, check if user has any orders "in_cart"
     else:
         order = get_customer_order(request.user)
 
@@ -195,7 +167,6 @@ def checkout(request):
     request.session["user_order"] = None
     return render(request, "orders/index.html")
 
-
 # Remove item(s) from a user's cart
 @require_POST
 def remove_item(request):
@@ -206,11 +177,11 @@ def remove_item(request):
         order = Order.objects.get(pk=order_id)
         items = CartItem.objects.filter(orders__pk__exact=order_id, pk__in=to_delete).all()
 
-        # cost = sum(items.item.price_small, 0)
-        cost = items.aggregate(Sum('item__price_small'))
-        print(f"\n\ncost aggregate is {cost}")
-        print(f"\n\ncost aggregate is {cost['item__price_small__sum']}")
-        order.cost = order.cost - cost['item__price_small__sum']
+        cost = 0
+        for item in items:
+            cost = cost + item.cost()
+
+        order.cost = order.cost - cost
         order.save()
         items.delete()
 
@@ -264,7 +235,6 @@ def order(request, order_id):
         messages.add_message(request, messages.ERROR, f"Order #{order_id} could not be found.")
         return HttpResponseRedirect(reverse("view_orders"))
 
-
 def update_order_status(request, order_id):
     print(order_id)
     print(f"Do we have a form status? {request.POST['orderStatus']}")
@@ -289,3 +259,45 @@ def get_customer_order(user):
         return order
     else:
         return None
+
+def get_session_order(request):
+    order = None
+
+    # Check to see if an order is already in progress
+    session_order = request.session.get("user_order")
+
+    # Get order saved in session, or create a new one
+    if session_order:
+        order = Order.objects.get(pk=session_order)
+    else:
+        order = Order.objects.create(
+            customer = User.objects.get(pk=request.user.id),
+            status = Status.objects.get(status="in_cart"),
+            cost = 0
+        )
+
+        # Add to session to reference later
+        request.session["user_order"] = order.id
+
+    return order
+
+def valid_num_toppings(item, toppings):
+    if item.num_toppings != len(toppings):
+        return False
+
+    return True
+
+
+
+def new_cart_item(item, size, selected_toppings):
+    # Create new CartItem
+    cart_item = CartItem.objects.create(
+        size = Size.objects.get(size=size),
+        item = item,
+    )
+
+    # Add selected toppings
+    toppings = Topping.objects.filter(name__in=selected_toppings)
+    cart_item.toppings.set(toppings)
+
+    return cart_item
