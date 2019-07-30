@@ -54,7 +54,7 @@ class CartItem(models.Model):
     size = models.ForeignKey(Size, on_delete=models.CASCADE, related_name="cart_items")
 
     def cost(self):
-        base_cost = getattr(self.item, f"price_{self.size}")
+        base_cost = getattr(self.item, f"{self.size}")
         print(f"the cart item is {base_cost}")
 
         if self.item.category.add_on_cost:
@@ -67,7 +67,7 @@ class CartItem(models.Model):
         return base_cost + add_on_cost
 
     def __str__(self):
-        return f"{self.item} ({self.size}) - ${self.cost()}"
+        return f"{self.item} ({self.size.size}) - ${self.cost()}"
 
 # An order's status
 class Status(models.Model):
