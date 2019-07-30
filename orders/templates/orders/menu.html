@@ -1,56 +1,54 @@
 {% extends "orders/base.html" %}
 
 {% block title %}
-    Menu
+  Menu
+{% endblock %}
+
+{% block pagehead %}
+  Menu
 {% endblock %}
 
 {% block body %}
-<h1>Menu</h1>
-
-    {% for key, values in menu.items %}
-    <table class="table table-sm">
-            <thead class="table-borderless">
-                <tr>
-                    <th scope="col-4">{{key}}</th>
-                    {% if key == "Pastas" or key == "Salads" %}
-                      <th scope="col-4">Individual</th>
-                      <th scole="col-4"></th>
-                      <th scole="col-4"></th>
-                     {% else %}
-                     <th scope="col-4"></th>
-                     <th scope="col-4">Small</th>
-                     <th scope="col-4">Large</th>
-
-                     {% endif %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for value in values %}
-                  <tr>
-
-                      <td scope="row" width="34%">
-                          <a href="{% url 'item' value.id %}">
-                            {{value}}
-                          </a>
-                      </td>
-                      <td width="22%">
-                          {{value.price_individual|default_if_none:""}}
-                      </td>
-                      <td width="22%">
-                          {{value.price_small|default_if_none:""}}
-                      </td>
-                      <td width="22%">
-                          {{value.price_large|default_if_none:""}}
-                      </td>
-                  </tr>
-
-                {% endfor %}
-                <!-- Add an extra row to add spacing to layout -->
-                <tr class="lastRow">
-                </tr>
-            </tbody>
-
-</table>
+{% for key, values in menu.items %}
+<table class="table table-sm">
+  <thead class="table-borderless">
+    <tr>
+      <th scope="col-4">{{key}}</th>
+      {% if key == "Pastas" or key == "Salads" %}
+        <th scope="col-4">Individual</th>
+        <th scole="col-4"></th>
+        <th scole="col-4"></th>
+      {% else %}
+        <th scope="col-4"></th>
+        <th scope="col-4">Small</th>
+        <th scope="col-4">Large</th>
+      {% endif %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for value in values %}
+      <tr>
+        <td scope="row" width="34%">
+          <a href="{% url 'item' value.id %}">
+            {{value}}
+          </a>
+        </td>
+        <td width="22%">
+          {{value.price_individual|default_if_none:""}}
+        </td>
+        <td width="22%">
+          {{value.price_small|default_if_none:""}}
+        </td>
+        <td width="22%">
+          {{value.price_large|default_if_none:""}}
+        </td>
+      </tr>
     {% endfor %}
+    <!-- Add an extra row to add spacing to layout -->
+    <tr class="lastRow">
+    </tr>
+  </tbody>
+</table>
+{% endfor %}
 
 {% endblock %}

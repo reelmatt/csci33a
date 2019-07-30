@@ -1,11 +1,11 @@
 {% extends "orders/base.html" %}
 
 {% block title %}
-    Order
+  Order
 {% endblock %}
 
 {% block pagehead %}
-    {% if order %}{{order}}{% endif %}
+  {% if order %}{{order}}{% endif %}
 {% endblock %}
 
 {% block body %}
@@ -14,26 +14,26 @@
   <h5>Placed by {{order.customer}} at {{order.creation_time}}</h5>
   <h5>Order total: ${{order.cost}}</h5>
   <ul>
-      {% for item in order.items.all %}
-        <li>{{item}}</li>
-      {% endfor %}
+    {% for item in order.items.all %}
+      <li>{{item}}</li>
+    {% endfor %}
   </ul>
   <h5>Status: {{order.status}}</h5>
 
   {% if user.is_staff %}
-  <form method="POST" action="{% url 'update_order_status' order.id %}">
+    <form method="POST" action="{% url 'update_order_status' order.id %}">
       {% csrf_token %}
       <div class="form-group">
         <label for="orderStatus">Status</label>
         <select class="form-control" name="orderStatus" id="orderStatus">
-            {% for status in statuses %}
-              <option value="{{status.status}}" {% if status == order.status %}selected{% endif %}>{{status}}</option>
-            {% endfor %}
+          {% for status in statuses %}
+            <option value="{{status.status}}" {% if status == order.status %}selected{% endif %}>{{status}}</option>
+          {% endfor %}
         </select>
       </div>
 
       <button type="submit" class="btn btn-primary">Update status</button>
-  </form>
+    </form>
   {% endif %}
 {% endif %}
 {% endblock %}
