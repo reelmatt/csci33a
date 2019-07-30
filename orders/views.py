@@ -1,15 +1,14 @@
+# Load Django modules
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.decorators import login_required, permission_required
+from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render
 from django.urls import reverse
-from django.contrib.auth.forms import AuthenticationForm
 from django.views.decorators.http import require_http_methods, require_POST
-from django.contrib.auth.decorators import login_required
-from django.db import IntegrityError
-from django.db.models import Sum
-from django.contrib import messages
 
+# Models
 from django.contrib.auth.models import User
 from .models import Item, Topping, Category, Order, Status, CartItem, Size
 
@@ -49,9 +48,10 @@ def register(request):
         # Log them in, and send to homepage
         login(request, user)
         return HttpResponseRedirect(reverse("index"))
+
     # Username is not unique, throw error
     except IntegrityError as e:
-        messages.add_message(request, messages.ERROR, "That username already exists.")
+        error_message(request, "That username already exists.")
         return render(request, "registration/register.html")
 
 '''
@@ -78,18 +78,18 @@ def item(request, item_id):
         sizes = Size.objects.all()
         selection = []
         for size in sizes:
+            # getattr() requires a string, but did not allow formatted style
             tmp = f"price_{size.size}"
-            selection.append((size, getattr(item, tmp)))
+            price = getattr(item, tmp)
+            selection.append((size, price))
 
         context = {
             "item": item,
-            "sizes": sizes,
             "selection": selection,
         }
-        print(selection)
         return render(request, "orders/item.html", context)
     except Item.DoesNotExist:
-        messages.add_message(request, messages.ERROR, "That item does not exist.")
+        error_message(request, "That item does not exist.")
         return HttpResponseRedirect(reverse("menu"))
 
 '''
@@ -116,27 +116,28 @@ def add_to_cart(request):
     try:
         item = Item.objects.get(pk=item_id)
     except Item.DoesNotExist:
-        messages.add_message(request, messages.ERROR, "That menu item does not exist.")
+        error_message(request, "That menu item does not exist.")
         return HttpResponseRedirect(reverse("menu"))
 
-    # Check user selected a valid number of toppings
+    # Check customer selected a size option
     if not size:
-        messages.add_message(request, messages.ERROR, f"Please select a size option.")
+        error_message(request, "Please select a size option.")
         return HttpResponseRedirect(reverse("menu") + f"/{item_id}")
+
+    # Check customer selected a valid number of toppings
     if not valid_num_toppings(item, selected_toppings):
-        messages.add_message(request, messages.ERROR, f"This item can only have {item.num_toppings} toppings. You selected {len(selected_toppings)}.")
+        error_message(request, "Please remove some toppings to add to your cart.")
         return HttpResponseRedirect(reverse("menu") + f"/{item_id}")
 
     # All info is valid, so add create/access CartItem and Order
     order = get_session_order(request)
     cart_item = new_cart_item(item, size, selected_toppings)
 
-    # Add new CartItem to the Order
+    # Add new CartItem to the Order, update cost
     order.items.add(cart_item)
     order.cost = order.cost + cart_item.cost()
     order.save()
 
-    print(f"\n\nADDING TO CART, order cost is {order.cost}")
     # Display a success message
     messages.add_message(request, messages.SUCCESS, f"Added {item} to your cart.")
     return HttpResponseRedirect(reverse("menu"))
@@ -157,7 +158,7 @@ def cart(request):
         else:
             order = get_customer_order(request.user)
     except Order.DoesNotExist:
-        messages.add_message(request, messages.ERROR, "Sorry, but we could not find your order.")
+        error_message(request, "Sorry, but we could not find your order.")
         request.session["user_order"] = None
 
     # If an order was found, and not in session, save it there
@@ -203,80 +204,98 @@ def remove_item(request):
         order.save()
         items.delete()
     except Order.DoesNotExist:
-        messages.add_message(request, messages.ERROR, f"That order does not exist. Try again.")
+        error_message(request, "That order does not exist. Try again.")
     except CartItem.DoesNotExist:
-        messages.add_message(request, messages.WARNING, f"Could not find item {item}.")
+        error_message(request, f"Could not find item {item}.")
 
     messages.add_message(request, messages.SUCCESS, f"Removed items from your cart.")
     return HttpResponseRedirect(reverse("cart"))
 
 '''
-Admin pages
-              order: an individual order
-update_order_status: change the status of a given order
-                        ('order_placed', 'in_progress', 'completed')
-        view_orders: a list of orders (admin = all orders; customer = personal orders)
+Order history/status
+-- order:
+    an individual order
+-- update_order_status:
+    change the status of a given order ('order_placed', 'in_progress', 'completed')
+-- view_orders:
+    a list of orders (admin = all orders; customer = personal orders)
 
 '''
-# Admin view to see all orders placed by customers
+# View to see all orders placed by customers
 def view_orders(request):
     # Initialize to None in case there is an exception
     orders = None
 
-
+    # For admins, show all customer orders
     if request.user.is_staff:
         # Try and find orders that have been placed, in_progress, or completed
         try:
             orders = Order.objects.exclude(status__status__exact="in_cart").all()
         except Order.DoesNotExist:
-            messages.add_message(request, messages.WARNING, f"Could not find any orders. Try again later.")
+            error_message(request, "Could not find any orders. Try again later.")
+
+    # If a customer, show just their orders
     elif request.user.is_authenticated:
         try:
             orders = Order.objects.filter(customer__id__exact=request.user.id).exclude(status__status__exact="in_cart").all()
         except Order.DoesNotExist:
-            messages.add_message(request, messages.WARNING, f"Could not find any orders. Try again later.")
+            error_message(request, "Could not find any orders. Try again later.")
 
     return render(request, "orders/orders.html", {"orders": orders})
 
-# Admin view to see an individual order placed by a customer
+# View to see an individual order placed by a customer
 def order(request, order_id):
-    # Find the order, and pass through to view
     try:
-        order = Order.objects.get(pk=order_id)
-        statuses = Status.objects.exclude(status="in_cart").all()
+        order = None
 
+        # If staff, return the order
+        if request.user.is_staff:
+            order = Order.objects.get(pk=order_id)
+
+        # If a customer, check the order belongs to them
+        elif request.user.is_authenticated:
+            order = Order.objects.filter(pk=order_id, customer__pk__exact=request.user.id).first()
+
+            # If it doesn't, display an error
+            if not order:
+                error_message(request, "Could not find any orders by you with that ID.")
+
+        # Pass order, and list of available statuses to view
         context = {
             "order": order,
-            "statuses": statuses,
+            "statuses": Status.objects.exclude(status="in_cart").all(),
         }
         return render(request, "orders/order.html", context)
 
     # Couldn't find that order, so send back to all orders with error message
     except Order.DoesNotExist:
-        messages.add_message(request, messages.ERROR, f"Order #{order_id} could not be found.")
+        error_message(request, f"Order #{order_id} could not be found.")
         return HttpResponseRedirect(reverse("view_orders"))
 
+# Allow a admin to update the status of an order
+@require_POST
+@permission_required('user.is_staff', login_url='/login')
 def update_order_status(request, order_id):
-    print(order_id)
-    print(f"Do we have a form status? {request.POST['orderStatus']}")
     try:
         status = Status.objects.get(status=request.POST['orderStatus'])
         order = Order.objects.filter(pk=order_id).update(status=status)
         messages.add_message(request, messages.SUCCESS, f"Order #{order_id} status updated to {status}.")
     except Order.DoesNotExist:
-        messages.add_message(request, messages.ERROR, f"Order #{order_id} could not be found.")
+        error_message(request, f"Order #{order_id} could not be found.")
 
     return HttpResponseRedirect(reverse("view_orders") + f"/{order_id}")
 
 '''
 Helper methods:
-    -- get_customer_order
+-- get_customer_order:
+-- get_session_order:
+-- valid_num_toppings:
+-- error_message:
+-- new_cart_item:
 '''
 def get_customer_order(user):
     if user.is_authenticated:
         order = Order.objects.filter(customer__id__exact=user.id, status__status__exact="in_cart").first()
-        print(f"User's orders are....")
-        print(order)
         return order
     else:
         return None
@@ -303,25 +322,28 @@ def get_session_order(request):
     return order
 
 def valid_num_toppings(item, toppings):
-
     str = item.category.name
-    print(f"\n\n{str}")
-    print(f"bool test is {'Pizzas' in str}")
+
+    # If item category includes Pizza, toppings must match
     if "Pizzas" in str:
         if item.num_toppings == len(toppings):
             return True
+    # Otherwise, toppings cannot exceed item's max
     elif item.num_toppings >= len(toppings):
-        print(f"OTHER and numbers okay, {item.num_toppings} >= {len(toppings)}")
         return True
 
     return False
 
-
+def error_message(request, message):
+    messages.add_message(request, messages.ERROR, message)
 
 def new_cart_item(item, size, selected_toppings):
+    # Split form field to access Size field
+    tmp = size.split('_')[1]
+
     # Create new CartItem
     cart_item = CartItem.objects.create(
-        size = Size.objects.get(size=size),
+        size = Size.objects.get(size=tmp),
         item = item,
     )
 
