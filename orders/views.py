@@ -222,7 +222,6 @@ Order history/status
     change the status of a given order ('order_placed', 'in_progress', 'completed')
 -- view_orders:
     a list of orders (admin = all orders; customer = personal orders)
-
 '''
 # View to see all orders placed by customers
 def view_orders(request):
