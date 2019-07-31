@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-
 # Name of toppings available
 class Topping(models.Model):
     name = models.CharField(max_length=64)
@@ -15,11 +14,11 @@ class Topping(models.Model):
 class Category(models.Model):
     name = models.CharField(max_length=64)
     add_on_cost = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
-    # sizes = models.ForeignKey(Size, on_delete=models.CASCADE, limit_choices_to={})
 
     def __str__(self):
         return f"{self.name}"
 
+# Size options for Items
 class Size(models.Model):
     size = models.CharField(max_length=32)
 
@@ -28,10 +27,8 @@ class Size(models.Model):
 
 # An individual menu item
 class Item(models.Model):
-
     name = models.CharField(max_length=64)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="items")
-    selected_toppings = models.ManyToManyField(Topping, blank=True, related_name="items")
     num_toppings = models.IntegerField(validators = [
         MinValueValidator(0),
         MaxValueValidator(5)
@@ -39,35 +36,40 @@ class Item(models.Model):
     price_individual = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     price_small = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     price_large = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
-    # price_selection = models.ForeignKey(Size, on_delete=models.CASCADE, related_name="items")
-
-
-    def get_toppings(self):
-        return Topping.objects.filter(allowed_on__id__exact=self.id).all()
 
     def __str__(self):
         return f"{self.name}"
 
+# A CartItem can contain many (menu) Items
 class CartItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="cart_items")
     toppings = models.ManyToManyField(Topping, blank=True, related_name="cart_items")
     size = models.ForeignKey(Size, on_delete=models.CASCADE, related_name="cart_items")
 
+    # Add the cost of the item and any additional topping costs
     def cost(self):
         base_cost = getattr(self.item, f"{self.size}")
-        print(f"the cart item is {base_cost}")
 
         if self.item.category.add_on_cost:
             add_on_cost = self.item.category.add_on_cost * len(self.toppings.all())
         else:
             add_on_cost = 0
 
-        print(f"\nAdd on cost is {self.item.category.add_on_cost} * {len(self.toppings.all())} = {add_on_cost}")
-
         return base_cost + add_on_cost
 
+    # Format the topping list in a human-readable string
+    def topping_list(self):
+        toppings = []
+        for topping in self.toppings.all():
+            toppings.append(topping.name)
+
+        if len(toppings) > 0:
+            return f"with {', '.join(toppings)}"
+        else:
+            return ""
+
     def __str__(self):
-        return f"{self.item} ({self.size.size}) - ${self.cost()}"
+        return f"{self.item.category}, {self.item} ({self.size.size}) {self.topping_list()} - ${self.cost()}"
 
 # An order's status
 class Status(models.Model):
@@ -77,7 +79,6 @@ class Status(models.Model):
     def __str__(self):
         return f"{self.friendly_status}"
 
-
 # A customer's order
 class Order(models.Model):
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="customer_orders")
@@ -86,17 +87,6 @@ class Order(models.Model):
     status = models.ForeignKey(Status, on_delete=models.CASCADE, null=True, blank=True, related_name="orders")
     creation_time = models.DateTimeField(auto_now_add=True)
     modified_time = models.DateTimeField(auto_now=True)
-
-    def calculate_cost(self):
-        items = self.items.all()
-        sum = 0
-        for item in items:
-            sum += item.item.price_small
-        print(f"DO we have items in correct form {items}")
-        # self.cost = sum(items)
-        print(f"IN CALCULATE COST, value is {sum}")
-        self.cost = sum
-        return self.cost
 
     def __str__(self):
         return f"Order #{self.id}"
