@@ -32,7 +32,7 @@ def register(request):
 
     # If passwords don't match, return an error message
     if request.POST["password"] != request.POST["confirmPassword"]:
-        messages.add_message(request, messages.ERROR, "Passwords don't match.")
+        error_message(request, "The passwords don't match.")
         return render(request, "registration/register.html")
 
     # Otherwise, add user to database
@@ -126,7 +126,10 @@ def add_to_cart(request):
 
     # Check customer selected a valid number of toppings
     if not valid_num_toppings(item, selected_toppings):
-        error_message(request, "Please remove some toppings to add to your cart.")
+        if item.num_toppings < len(selected_toppings):
+            error_message(request, "Please remove some toppings to add to your cart.")
+        else:
+            error_message(request, f"The item you selected requires {item.num_toppings} toppings.")
         return HttpResponseRedirect(reverse("menu") + f"/{item_id}")
 
     # All info is valid, so add create/access CartItem and Order
@@ -287,15 +290,21 @@ def update_order_status(request, order_id):
 
 '''
 Helper methods:
--- get_customer_order:
--- get_session_order:
--- valid_num_toppings:
--- error_message:
--- new_cart_item:
+-- error_message: Uses Django's message module to output error message
+-- get_customer_order: Retrieve's a logged-in user's most recent order
+-- get_session_order: Check's the session to see if an order exists; if not
+    the method will create a new order and store it in the session
+-- new_cart_item: Create a new cart item to add to an order with given size and
+    toppings
+-- valid_num_toppings: Checks the number of toppings selected against the allowed
+    amount for a given item.
 '''
+def error_message(request, message):
+    messages.add_message(request, messages.ERROR, message)
+
 def get_customer_order(user):
     if user.is_authenticated:
-        order = Order.objects.filter(customer__id__exact=user.id, status__status__exact="in_cart").first()
+        order = Order.objects.filter(customer__id__exact=user.id, status__status__exact="in_cart").last()
         return order
     else:
         return None
@@ -321,29 +330,13 @@ def get_session_order(request):
 
     return order
 
-def valid_num_toppings(item, toppings):
-    str = item.category.name
-
-    # If item category includes Pizza, toppings must match
-    if "Pizzas" in str:
-        if item.num_toppings == len(toppings):
-            return True
-    # Otherwise, toppings cannot exceed item's max
-    elif item.num_toppings >= len(toppings):
-        return True
-
-    return False
-
-def error_message(request, message):
-    messages.add_message(request, messages.ERROR, message)
-
 def new_cart_item(item, size, selected_toppings):
     # Split form field to access Size field
-    tmp = size.split('_')[1]
+    size_str = size.split('_')[1]
 
     # Create new CartItem
     cart_item = CartItem.objects.create(
-        size = Size.objects.get(size=tmp),
+        size = Size.objects.get(size=size_str),
         item = item,
     )
 
@@ -352,3 +345,16 @@ def new_cart_item(item, size, selected_toppings):
     cart_item.toppings.set(toppings)
 
     return cart_item
+
+def valid_num_toppings(item, toppings):
+    str = item.category.name
+
+    # If item category includes Pizza, toppings must match
+    if "Pizza" in item.category.name:
+        if item.num_toppings == len(toppings):
+            return True
+    # Otherwise, toppings cannot exceed item's max
+    elif item.num_toppings >= len(toppings):
+        return True
+
+    return False
