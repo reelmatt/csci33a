@@ -20,23 +20,13 @@
   {% endif %}
 {% endif %}
 
-<form method="post">
-    {% csrf_token %}
-    {{ form.username.errors }}
-    <label for="{{ form.username.id_for_label }}">Username</label>
-    {{ form.username }}
+{% if form.errors %}
+    <p>Your username and password didn't match. Please try again.</p>
+{% endif %}
 
-    {{ form.as_p}}
-
-    <button type="submit" class="btn btn-primary">Log in</button>
-  </form>
-<!-- <form method="POST" action="{% url 'login' %}">
+<form method="POST" action="{% url 'login' %}">
   {% csrf_token %}
   <div class="form-group">
-    {{ form.username.errors }}
-    <label for="{{ form.username.id_for_label }}">Username</label>
-
-    {{ form.username }}
     <label for="username">Username</label>
     <input type="text" class="form-control" name="username" id="username" placeholder="Enter username" required>
   </div>
@@ -46,7 +36,7 @@
   </div>
   <input type="hidden" name="next" value="{{ next }}">
   <button type="submit" class="btn btn-primary">Log in</button>
-</form> -->
+</form>
 <p>Don't have an account? <a href="{% url 'register' %}">Sign up for one.</a></p>
 
 {% endblock %}

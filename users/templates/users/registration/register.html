@@ -8,14 +8,8 @@
   Create a new account
 {% endblock %}
 
+
 {% block body %}
-<h1>hi there</h1>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Sign up</button>
-  </form>
-<!--
 <form method="POST" action="{% url 'register' %}" autocomplete="off">
   {% csrf_token %}
   <div class="form-row">
@@ -45,6 +39,6 @@
     <input type="password" class="form-control" name="confirmPassword" id="confirmPassword" placeholder="Confirm password" required>
   </div>
   <button type="submit" class="btn btn-primary">Create your account</button>
-</form> -->
+</form>
 <p>Already have an account? <a href="{% url 'login' %}">Sign in.</a></p>
 {% endblock %}
