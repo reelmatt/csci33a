@@ -37,6 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Project apps
+    'users.apps.UsersConfig',
 ]
 
 MIDDLEWARE = [
@@ -118,3 +121,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Customer user model
+# Highly recommended to add customer user model at start, per Django documentation
+# https://docs.djangoproject.com/en/2.2/topics/auth/customizing/#using-a-custom-user-model-when-starting-a-project
+#
+# Tutorial used when setting up the customer model
+# https://wsvincent.com/django-custom-user-model-tutorial/
+AUTH_USER_MODEL = 'users.User'
