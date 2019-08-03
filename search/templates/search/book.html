@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Search
+{% endblock %}
+
+{% block pagehead %}
+  Search
+{% endblock %}
+
+{% block body %}
+<form method="POST" action="{% url 'search' %}">
+  {% csrf_token %}
+    <input class="form-control" name="query" type="search" placeholder="Search" aria-label="Search">
+    <button class="btn btn-outline-success" type="submit">Add to your library</button>
+</form>
+
+
+{% endblock %}
