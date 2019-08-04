@@ -9,9 +9,36 @@
 {% endblock %}
 
 {% block body %}
-<form method="POST" action="{% url 'search' %}">
+
+
+<img src="{{book.cover.medium}}">
+<h1>{{book.title}}</h1>
+<h2>by
+{% for author in book.authors %}
+<a href="{{author.url}}">{{author.name}}</a>
+{% endfor %}
+</h2>
+<p>Publisher: {{book.publishers.0.name}}</p>
+<p>Published: {{book.publish_date}}</p>
+<div class="more-details">
+  {% for key in book.identifiers %}
+    <p>{{key|capfirst}}: {{book.identifiers.0.0}}
+
+    </p>
+  {% endfor %}
+
+
+  <h3>Genre</h3>
+  {% for subject in book.subjects %}
+    <p>{{subject.name}}</p>
+  {% endfor %}
+
+  <p></p>
+  <p></p>
+</div>
+
+<form method="POST" action="{% url 'acquire' book.identifiers.isbn_13.0 %}">
   {% csrf_token %}
-    <input class="form-control" name="query" type="search" placeholder="Search" aria-label="Search">
     <button class="btn btn-outline-success" type="submit">Add to your library</button>
 </form>
 
