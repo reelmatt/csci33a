@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     # Project apps
     'users.apps.UsersConfig',
     'library.apps.LibraryConfig',
+    'search.apps.SearchConfig',
+    'books.apps.BooksConfig',
 ]
 
 MIDDLEWARE = [
