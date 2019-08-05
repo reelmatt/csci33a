@@ -8,13 +8,13 @@ class Library(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="library", primary_key=True)
 
     # An assortment of 'Editions', or more-specific book information
-    edition = models.ManyToManyField('Edition', related_name="libraries", blank=False)
+    editions = models.ManyToManyField('Edition', related_name="libraries", blank=False)
 
     # Optional customizations made by user if their version deviates from the
     # 'standard' edition info found on Open Library or Goodreads
-    genre = models.ForeignKey('Genre', on_delete=models.CASCADE, related_name="libraries", blank=True)
-    num_pages = models.PositiveIntegerField(blank=True)
-    num_minutes = models.DurationField(blank=True)
+    genre = models.ForeignKey('Genre', on_delete=models.CASCADE, related_name="libraries", blank=True, null=True)
+    num_pages = models.PositiveIntegerField(blank=True, null=True)
+    num_minutes = models.DurationField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.user}'s Library'"
@@ -22,7 +22,7 @@ class Library(models.Model):
 # The most basic representation of a Book
 class Book(models.Model):
     title = models.CharField(max_length=256)
-    author = models.ManyToManyField('Author', related_name="books")
+    authors = models.ManyToManyField('Author', related_name="books")
     publisher = models.ForeignKey('Publisher', on_delete=models.CASCADE, related_name="books")
     genre = models.ForeignKey('Genre', on_delete=models.CASCADE, related_name="editions")
 
@@ -41,13 +41,13 @@ class Edition(models.Model):
     openlibrary_id = models.CharField(max_length=20, blank=True)
 
     # Edition-specific book information
-    pub_year = models.DateField(blank=True)
-    format = models.ForeignKey('Format', on_delete=models.CASCADE, related_name="editions")
-    num_pages = models.PositiveIntegerField(blank=True)
-    num_minutes = models.DurationField(blank=True)
+    pub_year = models.DateField(blank=True, null=True)
+    format = models.ForeignKey('Format', on_delete=models.CASCADE, blank=True, null=True, related_name="editions")
+    num_pages = models.PositiveIntegerField(blank=True, null=True)
+    num_minutes = models.DurationField(blank=True, null=True)
 
     def __str__(self):
-        return f"{self.book}"
+        return f"{self.book}-{self.isbn_10}"
 
 # Author model (just first/last name for now)
 class Author(models.Model):
@@ -69,12 +69,12 @@ class Genre(models.Model):
     name = models.CharField(max_length=64)
 
     def __str__(self):
-        return f"{self.genre}"
+        return f"{self.name}"
 
 # Information about the book's Publisher
 class Publisher(models.Model):
     name = models.CharField(max_length=128)
-    location = models.CharField(max_length=128)
+    location = models.CharField(max_length=128, blank=True)
 
     def __str__(self):
         return f"{self.name}"
@@ -90,16 +90,16 @@ class Event(models.Model):
 
     # Common information that changes for a given event
     # Doesn't always change, can be blank
-    pages_read = models.PositiveIntegerField(blank=True)
-    minutes_listened = models.DurationField(blank=True)
-    finished = models.BooleanField()
+    pages_read = models.PositiveIntegerField(blank=True, null=True)
+    minutes_listened = models.DurationField(blank=True, null=True)
+    finished = models.BooleanField(blank=True, null=True)
 
     # Keep track of creation/modification times
     creation_time = models.DateTimeField(auto_now_add=True)
     modified_time = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.action}"
+        return f"{self.action} - {self.creation_time}"
 
 # Action model
 class Action(models.Model):
