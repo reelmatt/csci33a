@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Your Library
+{% endblock %}
+
+{% block pagehead %}
+  Your Library
+{% endblock %}
+
+{% block body %}
+    <h1>{{edition.book.title}}</h1>
+    <p>{{edition.isbn_10}}</p>
+    <p>{{edition.pub_year}}</p>
+    {% for author in edition.book.authors.all %}
+      <p>{{author}}</p>
+    {% endfor %}
+
+    <h4>Events</h4>
+    {% for event in events %}
+      <p>{{event}}</p>
+    {% endfor %}
+
+
+    <form method="POST" action="{% url 'status update' edition.id|default:8675309 %}">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="action">Status</label>
+        <select class="form-control" name="action" id="action">
+          <option value=""></option>
+          {% for action in actions %}
+            <option value="{{action}}">{{action}}</option>
+          {% endfor %}
+        </select>
+        <label for="num_pages">Number of Pages Read</label>
+        <input type="number" id="num_pages">
+        <label for="num_minutes">Number of Minutes Listened</label>
+        <input type="number" id="num_minutes">
+        <label for="bookFinished">Book finished?</label>
+        <input type="checkbox" id="bookFinished">
+      </div>
+
+      <button type="submit" class="btn btn-primary">New status</button>
+    </form>
+{% endblock %}
