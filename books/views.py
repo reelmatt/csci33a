@@ -11,6 +11,7 @@ from django.shortcuts import render
 from library.models import Edition, Book, Library, Author, Publisher, Genre, Action, Event, UserEdition
 from django.contrib.auth.decorators import login_required
 from users.models import User
+
 # Acquire route
 # Will search Book Survey database to see if it finds a book matching the ID
 # If it doesn't, it will add a copy to the database. For all requests, it will
@@ -18,7 +19,6 @@ from users.models import User
 # they want.
 @login_required
 def acquire(request, book_id):
-    print("IN THE ACQUIRE ROUTE")
     # Display form with pulled-in information, that user
     # can change if they want.
     if request.method == "GET":
@@ -93,8 +93,7 @@ def book(request, book_id):
     key = list(result.keys())[0]
 
     ol_book = result[key]
-    # Performing OR searches in Model.filter
-    # https://docs.djangoproject.com/en/2.2/ref/models/querysets/#django.db.models.Q
+
     try:
         title = ol_book["title"]
         print(title)
@@ -103,12 +102,12 @@ def book(request, book_id):
     except Book.DoesNotExist:
         print(f"Whoops, Book does not exist")
 
-
-
     if book is None:
         print(f"\n\nCREATING A BOOK, and edition")
         book = add_book(request, ol_book)
 
+    # Performing OR searches in Model.filter
+    # https://docs.djangoproject.com/en/2.2/ref/models/querysets/#django.db.models.Q
     try:
         isbn13 = Q(isbn_13=book_id)
         isbn10 = Q(isbn_10=book_id)
@@ -120,7 +119,6 @@ def book(request, book_id):
     if len(editions) is 0:
         print("None editions")
         edition = add_edition(book, book_id, ol_book)
-
 
     context = {
         "book": result[key]
@@ -149,14 +147,9 @@ def add_edition(book, book_id, ol_book):
 
 
 def add_book(request, ol_book):
-    authors = get_author(ol_book)
-    print(f"back in add_book, author is {authors}")
-
-    publisher = get_publisher(ol_book)
-    print(f"back in add_book, publisher is {publisher}")
-
-    genre = get_genre(ol_book)
-    print(f"back in add_book, genre is {genre}")
+    authors = get_book_info(ol_book, "authors", Author)
+    publisher = get_book_info(ol_book, "publishers", Publisher)
+    genre = get_book_info(ol_book, "subjects", Genre)
 
     book = Book.objects.create(
         title = ol_book["title"],
@@ -169,127 +162,59 @@ def add_book(request, ol_book):
     print(f"Returning from add_book, result was {book}")
     return book
 
-def add_author(first, last):
-    print(f"In add_author, first is {first} and last is {last}")
+def get_book_info(ol_book, attr, model):
+    info = ol_book.get(attr)
+    db_info = None
+    info_list = []
 
-    author = Author.objects.create(
-        first_name = first,
-        last_name = last,
-    )
+    if info is not None:
+        for item in info:
+            if attr is "authors":
+                name = item["name"].split(" ", 2)
+            else:
+                name = item["name"]
+            info_list.append(name)
 
-
-    return author
-
-
-def get_author(ol_book):
-    print("\nIn get_author()")
-    authors = ol_book["authors"]
-    print(f"Authors?\n{authors}")
-    db_authors = None
-
-    author_names = []
-    for author in authors:
-        names = author["name"].split(" ", 2)
-        print(names)
-        author_names.append(names)
-
-    print(f"List of author names is {author_names}")
     try:
-        db_authors = Author.objects.filter(
-            first_name=author_names[0][0],
-            last_name=author_names[0][1],
-        ).first()
-    except Author.DoesNotExist:
-        print("Whoops, author does not exist.")
-
-    if db_authors is None:
-
-        first = author_names[0][0]
-        last = author_names[0][1]
-        print(f"No authors by that name, {first} {last}. Creating a new object.")
-        db_authors = add_author(first, last)
-
-    print(f"Returning from get_author, result was {db_authors}")
-    return db_authors
-
-def add_publisher(name, location):
-    print(f"In add_publisher, name is {name} and location is {location}.")
-
-    publisher = Publisher.objects.create(
-        name = name,
-        location = location,
-    )
-
-    return publisher
-
-def get_publisher(ol_book):
-    print("\nIn get_publisher()")
-    publishers = ol_book["publishers"]
-    print(f"Publihsers?\n{publishers}")
-    db_publishers = None
-
-    publisher_names = []
-    for publisher in publishers:
-        name = publisher["name"]
-        print(f"Pub name {name}")
-        publisher_names.append(name)
-
-    print(f"List of publihser names is {publisher_names}")
-    try:
-        db_publishers = Publisher.objects.filter(
-            name=publisher_names[0]
-        ).first()
-    except Publisher.DoesNotExist:
-        print("Whoops, publisher does not exist.")
-
-    if db_publishers is None:
-        db_publishers = add_publisher(publisher_names[0], "")
-
-    print(f"Returning from get_publisher, result was {db_publishers}")
-    return db_publishers
-
-def add_genre(name):
-    print(f"In add_genre, name is {name}.")
-
-    genre = Genre.objects.create(
-        name = name,
-    )
-
-    return genre
-
-def get_genre(ol_book):
-    print("\nIn get_genre()")
-    genres = ol_book.get("subjects")
-    print(f"Genres?\n{genres}")
-    db_genres = None
-
-    genre_names = []
-
-    if genres is not None:
-        for genre in genres:
-            name = genre["name"]
-            print(f"Genre name {name}")
-            genre_names.append(name)
-
-    print(f"List of genre names is {genre_names}")
-    try:
-        db_genres = Genre.objects.filter(
-            name=genre_names[0]
-        ).first()
-    except Genre.DoesNotExist:
-        print("Whoops, publisher does not exist.")
+        if attr is "authors":
+            db_info = model.objects.filter(
+                first_name=info_list[0][0],
+                last_name=info_list[0][1],
+            ).first()
+        else:
+            db_info = model.objects.filter(
+                name=info_list[0]
+            ).first()
+    except model.DoesNotExist:
+        print("whoops, model does not exist.")
     except IndexError:
         print("Genres do not exist.")
 
-    if db_genres is None and len(genre_names) > 0:
-        db_genres = add_genre(genre_names[0])
-    else:
-        db_genres = None
+    if db_info is None and len(info_list) > 0:
+        if attr is "publishers":
+            model = Publisher
+            kwargs = {
+                "name": info_list[0],
+                "location": ""
+            }
+        elif attr is "subjects":
+            model = Genre
+            kwargs = {
+                "name": info_list[0]
+            }
+        elif attr is "authors":
+            model = Author
+            kwargs = {
+                "first_name": info_list[0][0],
+                "last_name": info_list[0][1]
+            }
+        db_info = add_book_item(model, **kwargs)
+    print(f"Returning from get_book_info, result is {db_info}")
+    return db_info
 
-    print(f"Returning from get_genre, result was {db_genres}")
-
-    return db_genres
-
+def add_book_item(model, **kwargs):
+    print(f"adding args {kwargs}")
+    return model.objects.create(**kwargs)
 
 def search_openlibrary(book_id):
     url = "http://openlibrary.org/api/books?"
