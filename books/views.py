@@ -1,14 +1,14 @@
 import os
 import requests
 import datetime
-
+from datetime import timedelta
 from django.apps import apps
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.urls import reverse
 from django.db.models import Q
 from django.shortcuts import render
-from library.models import Edition, Book, Library, Author, Publisher, Genre, Action, Event
+from library.models import Edition, Book, Library, Author, Publisher, Genre, Action, Event, UserEdition
 from django.contrib.auth.decorators import login_required
 from users.models import User
 # Acquire route
@@ -18,6 +18,25 @@ from users.models import User
 # they want.
 @login_required
 def acquire(request, book_id):
+    print("IN THE ACQUIRE ROUTE")
+    # Display form with pulled-in information, that user
+    # can change if they want.
+    if request.method == "GET":
+        try:
+            book = Edition.objects.get(isbn_10=book_id)
+        except Book.DoesNotExist:
+            error_message(request, "That book does not exist.")
+            return HttpResponseRedirect(reverse("book", kwargs={"book_id": book_id}))
+
+        genres = Genre.objects.all()
+        context = {
+            "book": book,
+            "genres": genres,
+        }
+        print(f"Returning?? Book is {book}")
+        return render(request, "books/acquire.html", context)
+
+
     try:
         edition = Edition.objects.get(isbn_10=book_id)
     except Edition.DoesNotExist:
@@ -26,14 +45,36 @@ def acquire(request, book_id):
 
     # Add edition to the library
     library = Library.objects.get(pk=request.user.id)
-    library.editions.add(edition)
+
+    print(f"\n\n\n{request.POST['newGenre']}")
+    print(f"{request.POST['numPages']}")
+
+    try:
+        genre = Genre.objects.get(name=request.POST["newGenre"]),
+    except Genre.DoesNotExist:
+        print(f"Genre did not exist.")
+        genre = Genre.objects.create(
+            name = request.POST["newGenre"]
+        )
+
+    print(f"\n\nwhat is the genre? {genre}")
+    minutes = int(request.POST["numMinutes"])
+
+    user_edition = UserEdition.objects.create(
+        edition = edition,
+        genre = Genre.objects.get(name=request.POST['newGenre']),
+        num_pages = request.POST["numPages"],
+        num_minutes = timedelta(seconds=(minutes * 60)),
+    )
+
+    library.editions.add(user_edition)
     library.save()
 
     # Create an "acquire" event
     action = Action.objects.get(action="Acquired")
     event = Event.objects.create(
         user = User.objects.get(pk=request.user.id),
-        edition = edition,
+        edition = user_edition,
         action = action,
     )
     print(f"\n\nIN ACQUIRE, id is {book_id}")
@@ -218,15 +259,17 @@ def add_genre(name):
 
 def get_genre(ol_book):
     print("\nIn get_genre()")
-    genres = ol_book["subjects"]
+    genres = ol_book.get("subjects")
     print(f"Genres?\n{genres}")
     db_genres = None
 
     genre_names = []
-    for genre in genres:
-        name = genre["name"]
-        print(f"Genre name {name}")
-        genre_names.append(name)
+
+    if genres is not None:
+        for genre in genres:
+            name = genre["name"]
+            print(f"Genre name {name}")
+            genre_names.append(name)
 
     print(f"List of genre names is {genre_names}")
     try:
@@ -235,9 +278,13 @@ def get_genre(ol_book):
         ).first()
     except Genre.DoesNotExist:
         print("Whoops, publisher does not exist.")
+    except IndexError:
+        print("Genres do not exist.")
 
-    if db_genres is None:
+    if db_genres is None and len(genre_names) > 0:
         db_genres = add_genre(genre_names[0])
+    else:
+        db_genres = None
 
     print(f"Returning from get_genre, result was {db_genres}")
 

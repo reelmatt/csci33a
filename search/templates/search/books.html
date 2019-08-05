@@ -26,7 +26,7 @@
                     </div>
 </a>
 
-<a href="/books/{{request.GET.query|default_if_none:'what'}}/acquire" type="button" class="btn btn-primary btn-sm">Add</a>
+<a href="{% url 'acquire' request.GET.query %}" type="button" class="btn btn-primary btn-sm">Add</a>
                 </div>
 
             {% endfor %}
