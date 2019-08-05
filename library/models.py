@@ -8,13 +8,13 @@ class Library(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="library", primary_key=True)
 
     # An assortment of 'Editions', or more-specific book information
-    editions = models.ManyToManyField('Edition', related_name="libraries", blank=False)
+    editions = models.ManyToManyField('UserEdition', related_name="libraries", blank=False)
 
     # Optional customizations made by user if their version deviates from the
     # 'standard' edition info found on Open Library or Goodreads
-    genre = models.ForeignKey('Genre', on_delete=models.CASCADE, related_name="libraries", blank=True, null=True)
-    num_pages = models.PositiveIntegerField(blank=True, null=True)
-    num_minutes = models.DurationField(blank=True, null=True)
+    # genre = models.ForeignKey('Genre', on_delete=models.CASCADE, related_name="libraries", blank=True, null=True)
+    # num_pages = models.PositiveIntegerField(blank=True, null=True)
+    # num_minutes = models.DurationField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.user}'s Library'"
@@ -24,7 +24,7 @@ class Book(models.Model):
     title = models.CharField(max_length=256)
     authors = models.ManyToManyField('Author', related_name="books")
     publisher = models.ForeignKey('Publisher', on_delete=models.CASCADE, related_name="books")
-    genre = models.ForeignKey('Genre', on_delete=models.CASCADE, related_name="editions")
+    genre = models.ForeignKey('Genre', on_delete=models.CASCADE, related_name="editions", blank=True, null=True)
 
     def __str__(self):
         return f"{self.title}"
@@ -48,6 +48,19 @@ class Edition(models.Model):
 
     def __str__(self):
         return f"{self.book}-{self.isbn_10}"
+
+class UserEdition(models.Model):
+    # Edition the user has modified
+    edition = models.ForeignKey(Edition, on_delete=models.CASCADE, related_name="user_edition")
+
+    # Optional customizations made by user if their version deviates from the
+    # 'standard' edition info found on Open Library or Goodreads
+    genre = models.ForeignKey('Genre', on_delete=models.CASCADE, related_name="libraries", blank=True, null=True)
+    num_pages = models.PositiveIntegerField(blank=True, null=True)
+    num_minutes = models.DurationField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.edition}"
 
 # Author model (just first/last name for now)
 class Author(models.Model):
@@ -83,7 +96,7 @@ class Publisher(models.Model):
 class Event(models.Model):
     # Who made the event (also ties directly to a library)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="events")
-    edition = models.ForeignKey(Edition, on_delete=models.CASCADE, related_name="events")
+    edition = models.ForeignKey(UserEdition, on_delete=models.CASCADE, related_name="events")
 
     # What action was taken?
     action = models.ForeignKey('Action', on_delete=models.CASCADE, related_name="events")
