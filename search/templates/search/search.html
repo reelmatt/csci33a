@@ -10,8 +10,7 @@
 
 {% block body %}
 
-<form method="POST" action="{% url 'search' %}">
-  {% csrf_token %}
+<form method="GET" action="{% url 'search' %}">
     <input class="form-control" name="query" type="search" placeholder="Search" aria-label="Search">
 
     <div class="form-check form-check-inline">

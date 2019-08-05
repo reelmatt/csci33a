@@ -7,15 +7,16 @@ from django.shortcuts import render
 
 
 def search(request):
-    if request.method == "GET":
+    if not request.GET:
         return render(request, "search/search.html")
 
-    query = request.POST["query"]
-    option = request.POST["queryOptions"]
+
+    query = request.GET.get("query")
+    option = request.GET.get("queryOptions")
     print(f"\n\nTHE SEARCH QUERY - {query}, options, {option}")
 
     result = search_openlibrary(query, option)
-
+    # print(result)
     context = {
         "query": f"{option}: {query}",
         "books": result,
