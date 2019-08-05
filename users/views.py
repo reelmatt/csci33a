@@ -1,3 +1,4 @@
+from django.apps import apps
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth import login
@@ -5,6 +6,7 @@ from django.contrib import messages
 from django.db import IntegrityError
 
 from django.http import HttpResponse, HttpResponseRedirect, Http404
+from library.models import Library
 from .models import User
 
 # Route to register new users
@@ -27,11 +29,18 @@ def register(request):
             last_name=request.POST["lastName"],
             first_name=request.POST["firstName"]
         )
-
-        # Log them in, and send to homepage
-        login(request, user)
-        return HttpResponseRedirect(reverse("home"))
     # Username is not unique, throw error
     except IntegrityError as e:
         messages.add_message(request, messages.ERROR, "That username already exists.")
         return render(request, "registration/register.html")
+
+    try:
+        library = Library.objects.create(
+            user = user,
+        )
+    except Exception as e:
+        print(e)
+        
+    # Log them in, and send to homepage
+    login(request, user)
+    return HttpResponseRedirect(reverse("home"))
