@@ -1,13 +1,15 @@
 {% extends "base.html" %}
 
 {% block title %}
-  LibraryConfig
+  Your Library
 {% endblock %}
 
 {% block pagehead %}
-  Library
+  Your Library
 {% endblock %}
 
 {% block body %}
-    <h1>This is a library.</h1>
+    {% for edition in library.editions.all %}
+      <p><a href="{% url 'edition' edition.id%}">{{edition}}</a></p>
+    {% endfor %}
 {% endblock %}

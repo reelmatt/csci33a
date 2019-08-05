@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Your Library
+{% endblock %}
+
+{% block pagehead %}
+  Your Library
+{% endblock %}
+
+{% block body %}
+    <h1>{{edition.book.title}}</h1>
+    <p>{{edition.isbn_10}}</p>
+    <p>{{edition.pub_year}}</p>
+    {% for author in edition.book.authors.all %}
+      <p>{{author}}</p>
+    {% endfor %}
+
+    <h4>Events</h4>
+    {% for event in events %}
+      {{event}}
+    {% endfor %}
+
+{% endblock %}
