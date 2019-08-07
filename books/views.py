@@ -19,109 +19,112 @@ from users.models import User
 # they want.
 @login_required
 def acquire(request, book_id):
+
+    edition = retrieve_edition(request, book_id)
+
+    if edition is None:
+        return HttpResponseRedirect(reverse("book", kwargs={"book_id": book_id}))
+
     # Display form with pulled-in information, that user
     # can change if they want.
     if request.method == "GET":
-        try:
-            book = Edition.objects.get(isbn_10=book_id)
-        except Book.DoesNotExist:
-            error_message(request, "That book does not exist.")
-            return HttpResponseRedirect(reverse("book", kwargs={"book_id": book_id}))
-
         genres = Genre.objects.all()
         context = {
-            "book": book,
+            "edition": edition,
             "genres": genres,
         }
-        print(f"Returning?? Book is {book}")
         return render(request, "books/acquire.html", context)
-
-
-    try:
-        edition = Edition.objects.get(isbn_10=book_id)
-    except Edition.DoesNotExist:
-        error_message(request, "That book does not exist.")
-        return HttpResponseRedirect(reverse("book", kwargs={"book_id": book_id}))
 
     # Add edition to the library
     library = Library.objects.get(pk=request.user.id)
 
-    print(f"\n\n\n{request.POST['newGenre']}")
-    print(f"{request.POST['numPages']}")
+    genre_args = {"name": request.POST["newGenre"]}
+    genre = make_book_prop(Genre, **genre_args)
 
+
+    kwargs = {
+        "edition": edition,
+        # "genre": genre,
+        "genre": Genre.objects.get(name=request.POST['newGenre']),
+    }
+
+    minutes = book_minutes(request)
     try:
-        genre = Genre.objects.get(name=request.POST["newGenre"]),
-    except Genre.DoesNotExist:
-        print(f"Genre did not exist.")
-        genre = Genre.objects.create(
-            name = request.POST["newGenre"]
-        )
+        pages = int(request.POST["numPages"])
+    except ValueError:
+        pages = None
 
-    print(f"\n\nwhat is the genre? {genre}")
-    minutes = int(request.POST["numMinutes"])
+    if pages is not None:
+        kwargs["num_pages"] = pages
+    if minutes is not None:
+        kwargs["num_minutes"] = minutes
 
-    user_edition = UserEdition.objects.create(
-        edition = edition,
-        genre = Genre.objects.get(name=request.POST['newGenre']),
-        num_pages = request.POST["numPages"],
-        num_minutes = timedelta(seconds=(minutes * 60)),
-    )
+    user_edition = add_book_item(UserEdition, **kwargs)
+
 
     library.editions.add(user_edition)
     library.save()
 
-    # Create an "acquire" event
+    add_event(request, user_edition)
+
+    return HttpResponseRedirect(reverse("book", kwargs={"book_id": book_id}))
+
+def book_minutes(request):
+    try:
+        minutes = int(request.POST["numMinutes"])
+        return timedelta(seconds=(minutes * 60))
+    except ValueError:
+        return None
+
+
+def retrieve_edition(request, book_id):
+    edition = None
+    try:
+        edition = Edition.objects.get(isbn_10=book_id)
+    except Edition.DoesNotExist:
+        # Add book, and try again before reporting error
+        error_message(request, "That book does not exist.")
+
+    return edition
+
+# Create an "acquire" event
+def add_event(request, user_edition):
     action = Action.objects.get(action="Acquired")
     event = Event.objects.create(
         user = User.objects.get(pk=request.user.id),
         edition = user_edition,
         action = action,
     )
-    print(f"\n\nIN ACQUIRE, id is {book_id}")
-    print(f"event saved too. it is {event}")
+    return
 
-    return HttpResponseRedirect(reverse("book", kwargs={"book_id": book_id}))
+# First checks to see if a model exists, and if not, creates it
+def make_book_prop(model, **kwargs):
+    item = None
+    try:
+        item = model.objects.get(**kwargs)
+    except model.DoesNotExist:
+        print("model did not exist.")
+        item = model.objects.create(**kwargs)
 
+    return item
 
 def book(request, book_id):
-    print(f"in book view, id is {book_id}")
-
     result = search_openlibrary(book_id)
 
     # Access a dictionary item by index
     # https://stackoverflow.com/questions/30362391/how-do-you-find-the-first-key-in-a-dictionary
-    key = list(result.keys())[0]
-
+    try:
+        key = list(result.keys())[0]
+    except IndexError:
+        error_message(request, f"We don't have a book by that id - {book_id}.")
+        return HttpResponseRedirect(reverse("search"))
     ol_book = result[key]
 
-    try:
-        title = ol_book["title"]
-        print(title)
-        book = Book.objects.filter(title=title).first()
-        print(book)
-    except Book.DoesNotExist:
-        print(f"Whoops, Book does not exist")
-
-    if book is None:
-        print(f"\n\nCREATING A BOOK, and edition")
-        book = add_book(request, ol_book)
-
-    # Performing OR searches in Model.filter
-    # https://docs.djangoproject.com/en/2.2/ref/models/querysets/#django.db.models.Q
-    try:
-        isbn13 = Q(isbn_13=book_id)
-        isbn10 = Q(isbn_10=book_id)
-        editions = Edition.objects.filter(isbn10 | isbn13)
-        print(f"We found editions. {editions}")
-    except Edition.DoesNotExist:
-        print(f"Whoops, no editions exist for id {book_id}")
-
-    if len(editions) is 0:
-        print("None editions")
-        edition = add_edition(book, book_id, ol_book)
+    book = find_book_book(ol_book, request)
+    edition = find_book_edition(book_id, book, ol_book)
 
     context = {
-        "book": result[key]
+        "edition": edition
     }
     return render(request, "books/book.html", context)
 
@@ -129,13 +132,11 @@ def add_edition(book, book_id, ol_book):
     print(f"In add_edition")
     print(f"do we have a pub_year? {ol_book['publish_date']}")
 
-
     try:
         year = datetime.date(int(ol_book['publish_date']), 1, 1)
     except ValueError:
         year = None
 
-    print(f"we have  ayear {year}")
     edition = Edition.objects.create(
         book = book,
         isbn_10 = book_id,
@@ -144,7 +145,6 @@ def add_edition(book, book_id, ol_book):
 
     print(f"returning with a new edition. {edition}")
     return edition
-
 
 def add_book(request, ol_book):
     authors = get_book_info(ol_book, "authors", Author)
@@ -161,6 +161,35 @@ def add_book(request, ol_book):
     book.save()
     print(f"Returning from add_book, result was {book}")
     return book
+
+def find_book_book(ol_book, request):
+    try:
+        title = ol_book["title"]
+        book = Book.objects.filter(title=title).first()
+    except Book.DoesNotExist:
+        print(f"Whoops, Book does not exist")
+
+    if book is None:
+        book = add_book(request, ol_book)
+
+    return book
+
+def find_book_edition(book_id, book, ol_book):
+    # Performing OR searches in Model.filter
+    # https://docs.djangoproject.com/en/2.2/ref/models/querysets/#django.db.models.Q
+    try:
+        isbn13 = Q(isbn_13=book_id)
+        isbn10 = Q(isbn_10=book_id)
+        editions = Edition.objects.filter(isbn10 | isbn13)
+    except Edition.DoesNotExist:
+        print(f"Whoops, no editions exist for id {book_id}")
+
+    if len(editions) is 0:
+        edition = add_edition(book, book_id, ol_book)
+    else:
+        edition = editions.first()
+
+    return edition
 
 def get_book_info(ol_book, attr, model):
     info = ol_book.get(attr)
@@ -208,7 +237,8 @@ def get_book_info(ol_book, attr, model):
                 "first_name": info_list[0][0],
                 "last_name": info_list[0][1]
             }
-        db_info = add_book_item(model, **kwargs)
+        db_info = model.objects.create(**kwargs)
+
     print(f"Returning from get_book_info, result is {db_info}")
     return db_info
 
