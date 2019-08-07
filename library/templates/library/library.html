@@ -9,7 +9,26 @@
 {% endblock %}
 
 {% block body %}
-    {% for edition in library.editions.all %}
-      <p><a href="{% url 'edition' edition.id%}">{{edition}}</a></p>
-    {% endfor %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Title</th>
+        <th scope="col">Authors</th>
+        <th scope="col">Genre</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for edition in library.editions.all %}
+        <tr>
+          <td><a href="{% url 'edition' edition.id%}">{{edition.edition.book.title}}</a></td>
+          <td>
+            {% for author in edition.edition.book.authors.all %}
+              {{author}}
+            {% endfor %}
+          </td>
+          <td>{{edition.genre}}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 {% endblock %}
