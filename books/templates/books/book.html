@@ -12,31 +12,22 @@
 
 
 <img src="{{book.cover.medium}}">
-<h1>{{book.title}}</h1>
+<h1>{{edition.book.title}}</h1>
 <h2>by
-{% for author in book.authors %}
-<a href="{{author.url}}">{{author.name}}</a>
-{% endfor %}
+  {% for author in edition.book.authors.all %}
+    {{author}}
+  {% endfor %}
 </h2>
-<p>Publisher: {{book.publishers.0.name}}</p>
-<p>Published: {{book.publish_date}}</p>
-<div class="more-details">
-  {% for key in book.identifiers %}
-    <p>{{key|capfirst}}: {{book.identifiers.0.0}}
 
-    </p>
-  {% endfor %}
+<h4>Additional info:</h4>
+<p>Genre: {{edition.book.genre|default:"None listed."}}</p>
+<p>Publisher: {{edition.book.publishers|default:"None listed."}}</p>
+<p>Published: {{edition.pub_year|default:"None listed."}}</p>
+<p>ISBN 10: {{edition.isbn_10|default:"None listed."}}</p>
+<p>ISBN 13: {{edition.isbn_13|default:"None listed."}}</p>
+<p>Goodreads: {{edition.goodreads_id|default:"None listed."}}</p>
+<p>Open Library: {{edition.openlibrary_id|default:"None listed."}}</p>
 
-
-  <h3>Genre</h3>
-  {% for subject in book.subjects %}
-    <p>{{subject.name}}</p>
-  {% endfor %}
-
-  <p></p>
-  <p></p>
-</div>
-
-<a href="{% url 'acquire' book.identifiers.isbn_10.0 %}" type="button" class="btn btn-primary btn-sm">Add to your library</a>
+<a href="{% url 'acquire' edition.isbn_10 %}" role="button" class="btn btn-primary btn-sm">Add to your library</a>
 
 {% endblock %}

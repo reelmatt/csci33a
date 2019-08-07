@@ -112,7 +112,11 @@ class Event(models.Model):
     modified_time = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.action} - {self.creation_time}"
+        return f"{self.action}"
+
+    def event_time(self):
+        time = self.creation_time.strftime("%m/%d/%y at %H:%M %p")
+        return time
 
 # Action model
 class Action(models.Model):

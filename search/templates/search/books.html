@@ -17,16 +17,17 @@
             {% for book in books %}
 
                 <div class="card">
-                   <a href="http://openlibrary.org/isbn/{{book.isbn|first}}"><img src="https://covers.openlibrary.org/b/id/{{book.cover_i}}-L.jpg" class="card-img-left" height="200px" width="100px"></a>
-<a href="/books/{{request.GET.query|default_if_none:'what'}}" class="card-link" class="card-link">
+                   <!-- Book cover, linked to Open Library -->
+                   <a href="http://openlibrary.org/isbn/{{book.isbn|first}}"><img src="https://covers.openlibrary.org/b/id/{{book.cover_i}}-L.jpg" class="book-cover card-img-right"></a>
+
+                   <!-- Book info, links to individual book page -->
+                   <a href="/books/{{request.GET.query|default_if_none:'what'}}" class="card-link" class="card-link">
                     <div class="card-body">
                         <h5 class="card-title">{{book.title}}</h5>
                         <h6 class="card-subtitle mb-2 text-muted">by {{book.author_name|first}}</h6>
-                        <p>{{book.isbn|first}}</p>
+                        <p>ISBN: {{book.isbn|first}}</p>
                     </div>
-</a>
-
-<a href="{% url 'acquire' request.GET.query %}" type="button" class="btn btn-primary btn-sm">Add</a>
+                  </a>
                 </div>
 
             {% endfor %}

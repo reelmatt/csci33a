@@ -45,7 +45,7 @@ def edition(request, edition_id):
 
 def status_update(request, edition_id):
     try:
-        edition = Edition.objects.get(pk=edition_id, libraries__user__id=request.user.id)
+        edition = UserEdition.objects.get(pk=edition_id, libraries__user__id=request.user.id)
     except Exception as e:
         print("whoops")
 

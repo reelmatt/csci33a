@@ -9,37 +9,50 @@
 {% endblock %}
 
 {% block body %}
-    <h1>{{edition.book.title}}</h1>
-    <p>{{edition.isbn_10}}</p>
-    <p>{{edition.pub_year}}</p>
-    {% for author in edition.book.authors.all %}
-      <p>{{author}}</p>
-    {% endfor %}
+    <h1>{{edition.edition.book.title}}</h1>
+    <h2>by{% for author in edition.edition.book.authors.all %}
+      {{author}}
+      {% endfor %}
+    </h2>
+    <p>ISBN 10: {{edition.edition.isbn_10|default:"None listed."}}</p>
+    <p>Publication year: {{edition.edition.pub_year|default:"None listed."}}</p>
 
     <h4>Events</h4>
     {% for event in events %}
-      <p>{{event}}</p>
+      <p>{{event}} - {{event.event_time}}</p>
+    {% empty %}
+      <p>No events logged yet.</p>
     {% endfor %}
 
+    {% if edition %}
+      <form method="POST" action="{% url 'status update' edition.id%}">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="action">Status</label>
 
-    <form method="POST" action="{% url 'status update' edition.id|default:8675309 %}">
-      {% csrf_token %}
-      <div class="form-group">
-        <label for="action">Status</label>
-        <select class="form-control" name="action" id="action">
-          <option value=""></option>
-          {% for action in actions %}
-            <option value="{{action}}">{{action}}</option>
-          {% endfor %}
-        </select>
-        <label for="num_pages">Number of Pages Read</label>
-        <input type="number" id="num_pages">
-        <label for="num_minutes">Number of Minutes Listened</label>
-        <input type="number" id="num_minutes">
-        <label for="bookFinished">Book finished?</label>
-        <input type="checkbox" id="bookFinished">
-      </div>
+          <select class="form-control" name="action" id="action">
+            <option value=""></option>
+            {% for action in actions %}
+              <option value="{{action}}">{{action}}</option>
+            {% endfor %}
+          </select>
+          </div>
+          <div class="form-group">
+            <label for="numPages">Number of pages read</label>
+            <input type="number" class="form-control" name="numPages" id="numPages">
+          </div>
+          <div class="form-group">
+            <label for="numMinutes">Number of minutes listened</label>
+            <input type="number" class="form-control" name="numMinutes" id="numMinutes">
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="bookFinished" id="bookFinished">
+            <label class="form-check-label" for="bookFinished">Book finished?</label>
+          </div>
 
-      <button type="submit" class="btn btn-primary">New status</button>
-    </form>
+        <button type="submit" class="btn btn-primary">New status</button>
+      </form>
+    {% else %}
+      <p>Could not find an edition with that ID. Go back and try again.</p>
+    {% endif %}
 {% endblock %}

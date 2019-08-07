@@ -12,55 +12,40 @@
 
 
 <img src="{{book.cover.medium}}">
-<h1>{{book.title}}</h1>
+<h1>{{edition.book.title}}</h1>
 <h2>by
-{% for author in book.authors %}
-<a href="{{author.url}}">{{author.name}}</a>
-{% endfor %}
+  {% for author in edition.book.authors.all %}
+    {{author}}
+  {% endfor %}
 </h2>
+<p>Publisher: {{edition.book.publisher|default:"None listed."}}</p>
+<p>Published: {{edition.book.pub_year|default:"None listed."}}</p>
 
-<form method="POST" action="{% url 'acquire' book.isbn_10 %}">
+<form method="POST" action="{% url 'acquire' edition.isbn_10 %}">
   {% csrf_token %}
   <div class="form-group">
     <label for="genre">Genre</label>
     <select class="form-control" name="genre" id="genre">
       <option value=""></option>
       {% for genre in genres %}
-        <option value="{{genre}}">{{genre}}</option>
+        <option value="{{genre}}" {% if edition.book.genre == genre %}selected{% endif %}>{{genre}}</option>
       {% endfor %}
-
     </select>
-    <label for="new_genre">Add a new genre</label>
-    <input type="text" name="newGenre" id="newGenre">
-
-    <label for="numPages">Number of Pages Read</label>
-    <input type="number" name="numPages" id="numPages" value="{{book.num_pages}}">
-    <label for="numMinutes">Number of Minutes Listened</label>
-    <input type="number" name="numMinutes" id="numMinutes" value="{{book.num_minutes}}">
-    <label for="bookFinished">Book finished?</label>
-    <input type="checkbox" name="bookFinished" id="bookFinished">
+  </div>
+  <div class="form-group">
+      <label for="new_genre">Add a new genre</label>
+      <input type="text" class="form-control" name="newGenre" id="newGenre">
+  </div>
+  <div class="form-group">
+    <label for="numPages">Number of pages</label>
+    <input type="number" class="form-control" name="numPages" id="numPages" value="{{book.num_pages}}">
+  </div>
+  <div class="form-group">
+    <label for="numMinutes">Number of minutes</label>
+    <input type="number" class="form-control" name="numMinutes" id="numMinutes" value="{{book.num_minutes}}">
   </div>
     <button class="btn btn-outline-success" type="submit">Add to your library</button>
 </form>
-
-<p>Publisher: {{book.publishers.0.name}}</p>
-<p>Published: {{book.publish_date}}</p>
-<div class="more-details">
-  {% for key in book.identifiers %}
-    <p>{{key|capfirst}}: {{book.identifiers.0.0}}
-
-    </p>
-  {% endfor %}
-
-
-  <h3>Genre</h3>
-  {% for subject in book.subjects %}
-    <p>{{subject.name}}</p>
-  {% endfor %}
-
-  <p></p>
-  <p></p>
-</div>
 
 
 
