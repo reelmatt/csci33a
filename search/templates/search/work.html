@@ -1,24 +1,31 @@
 {% extends "base.html" %}
 
 {% block title %}
-  Search
+  {{work.title}}
 {% endblock %}
 
 {% block pagehead %}
-  Search
+  {{work.title}}
 {% endblock %}
 
 {% block body %}
 
 <img src="https://covers.openlibrary.org/w/id/{{work.covers.0}}-L.jpg">
-<h1>{{work.title}}</h1>
 <p>{{work.description.value}}</p>
 
-<h3>{{editions|length}}</h3>
+<h3>This title has {{num_editions}} editions. Here are the first {{editions|length}} results.</h3>
 <ul>
 {% for edition, info in editions.items %}
-  <p><a href="{% url 'book' edition|slice:'5:' %}">{{info.title}} - Published by
-    {{info.publishers.0.name}} ({{info.publish_date}})</a></p>
+  <p><a href="{% url 'book' edition|slice:'5:' %}">{{info.title}} -
+    {% if info.publishers.0 %}
+      Published by {{info.publishers.0.name}}
+    {% else %}
+      No publisher info
+    {% endif %}
+    {% if info.publish_date %}
+      ({{info.publish_date}})
+    {% endif %}
+     </a></p>
 {% endfor %}
 </ul>
 

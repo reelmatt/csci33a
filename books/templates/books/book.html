@@ -29,6 +29,6 @@
 <p>Open Library: {{edition.openlibrary_id|default:"None listed."}}</p>
 
 {% if edition %}
-<a href="{% url 'acquire' edition.isbn_10 %}" role="button" class="btn btn-primary btn-sm">Add to your library</a>
+<a href="{% url 'acquire' edition.openlibrary_id %}" role="button" class="btn btn-primary btn-sm">Add to your library</a>
 {% endif %}
 {% endblock %}
