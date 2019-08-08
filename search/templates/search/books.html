@@ -27,6 +27,8 @@
                     </div>
                   </a>
                 </div>
+            {% empty %}
+              <p>Do you want to <a href="{% url 'add book' %}">add this book</a> to the database?</p>
             {% endfor %}
     </section>
 </div>
