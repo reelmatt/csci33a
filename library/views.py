@@ -1,5 +1,9 @@
+import datetime
+from datetime import timedelta
 from django.shortcuts import render
 from django.urls import reverse
+from django.utils import timezone
+import pytz
 from django.contrib import messages
 from django.db import IntegrityError
 from django.apps import apps
@@ -59,6 +63,65 @@ def status_update(request, edition_id):
         "edition": edition,
     }
     return HttpResponseRedirect(reverse("edition", kwargs={"edition_id": edition_id}))
+
+def stats(request):
+    # Default stats
+    action = "Acquired"
+    days = 7
+
+    if request.method == "POST":
+        print("updating values...")
+        if request.POST.get("action"):
+            action = request.POST.get("action")
+        if request.POST.get("numDays"):
+            days = int(request.POST.get("numDays"))
+
+        print(f"action is {action} and number of days are {days}")
+
+    library = None
+    try:
+        library = Library.objects.get(pk=request.user.id)
+    except Library.DoesNotExist:
+        print("whoops, library dne")
+
+
+    acquired = []
+    editions = library.editions.all()
+
+    for edition in editions:
+        # print(edition.events.all())
+
+        # Change datetime to timezone-aware var
+        # https://stackoverflow.com/a/20106079
+
+        last_day = timezone.now() - timedelta(days=days)
+
+        result = Event.objects.filter(
+            edition__id=edition.id,
+            action__action__exact=action,
+            creation_time__gt=last_day,
+        ).all()
+
+        if len(result) > 0:
+            # print(f"\n{result}")
+            # print(f"\n{result.values()}")
+
+            for item in result:
+                # print(item.edition.edition.book)
+                acquired.append(item.edition.edition.book)
+
+            # acquired.append(result.values())
+
+
+    # print(f"acquired: {acquired}")
+    print(f"\nacquired length {len(acquired)}")
+
+    context = {
+        "library": library,
+        "actions": Action.objects.all(),
+        "acquired": acquired,
+    }
+    return render(request, "library/stats.html", context)
 
 def event(request, edition_id, event_id):
     return render(request, "library/event.html")
