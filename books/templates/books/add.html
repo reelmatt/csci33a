@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Add book
+{% endblock %}
+
+{% block pagehead %}
+  Add book
+{% endblock %}
+
+{% block body %}
+
+<form method="POST" action="{% url 'add book' %}">
+  {% csrf_token %}
+
+  <div class="form-group">
+      <label for="title">Title</label>
+      <input type="text" class="form-control" name="title" id="title">
+  </div>
+
+  <div class="form-group">
+      <label for="author">Author</label>
+      <input type="text" class="form-control" name="author" id="author">
+  </div>
+
+  <div class="form-group">
+      <label for="publisher">Publisher</label>
+      <input type="text" class="form-control" name="publisher" id="publisher">
+  </div>
+
+  <div class="form-group">
+    <label for="pub_year">Published year</label>
+    <input type="text" class="form-control" name="pub_year" id="pub_year">
+  </div>
+
+  <div class="form-group">
+      <label for="genre">Genre</label>
+      <input type="text" class="form-control" name="genre" id="genre">
+  </div>
+
+  <div class="form-group">
+    <label for="isbn_10">ISBN 10</label>
+    <input type="text" class="form-control" name="isbn_10" id="isbn_10">
+  </div>
+
+  <div class="form-group">
+    <label for="isbn_13">ISBN 13</label>
+    <input type="text" class="form-control" name="isbn_13" id="isbn_13">
+  </div>
+
+
+  <div class="form-group">
+    <label for="num_pages">Number of pages</label>
+    <input type="number" class="form-control" name="num_pages" id="num_pages">
+  </div>
+
+  <div class="form-group">
+    <label for="num_minutes">Number of minutes</label>
+    <input type="number" class="form-control" name="num_minutes" id="num_minutes">
+  </div>
+
+    <button class="btn btn-outline-success" type="submit">Add book</button>
+</form>
+
+
+
+{% endblock %}
