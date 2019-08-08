@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Search
+{% endblock %}
+
+{% block pagehead %}
+  Search
+{% endblock %}
+
+{% block body %}
+
+<img src="https://covers.openlibrary.org/w/id/{{work.covers.0}}-L.jpg">
+<h1>{{work.title}}</h1>
+<p>{{work.description.value}}</p>
+
+<h3>{{editions|length}}</h3>
+<ul>
+{% for edition, info in editions.items %}
+  <p><a href="{% url 'book' edition|slice:'5:' %}">{{info.title}} - Published by
+    {{info.publishers.0.name}} ({{info.publish_date}})</a></p>
+{% endfor %}
+</ul>
+
+{% endblock %}
