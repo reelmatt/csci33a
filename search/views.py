@@ -16,9 +16,6 @@ def search(request):
 
     safe_query = "-".join(query.split(" "))
 
-
-
-    # print(result)
     context = {
         "query": f"{option}={query}",
         "safeQuery": safe_query,
@@ -47,6 +44,7 @@ def work(request, book_query, index):
 
     context = {
         "work": work,
+        "num_editions": len(selected['edition_key']),
         "editions": editions,
         # "edition": edition
     }
