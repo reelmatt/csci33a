@@ -10,6 +10,7 @@
 
 {% block body %}
     <h1>{{edition.edition.book.title}}</h1>
+    <img src="{{edition.edition.cover}}">
     <h2>by{% for author in edition.edition.book.authors.all %}
       {{author}}
       {% endfor %}

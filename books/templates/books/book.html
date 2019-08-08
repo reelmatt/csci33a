@@ -10,8 +10,8 @@
 
 {% block body %}
 
+<img src="{{edition.cover}}">
 
-<img src="{{book.cover.medium}}">
 <h1>{{edition.book.title}}</h1>
 <h2>by
   {% for author in edition.book.authors.all %}
@@ -28,6 +28,7 @@
 <p>Goodreads: {{edition.goodreads_id|default:"None listed."}}</p>
 <p>Open Library: {{edition.openlibrary_id|default:"None listed."}}</p>
 
-<a href="{% url 'acquire' edition.isbn_10 %}" role="button" class="btn btn-primary btn-sm">Add to your library</a>
-
+{% if edition %}
+<a href="{% url 'acquire' edition.openlibrary_id %}" role="button" class="btn btn-primary btn-sm">Add to your library</a>
+{% endif %}
 {% endblock %}

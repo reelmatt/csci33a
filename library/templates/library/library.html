@@ -15,6 +15,7 @@
         <th scope="col">Title</th>
         <th scope="col">Authors</th>
         <th scope="col">Genre</th>
+        <th scope="col">Status</th>
       </tr>
     </thead>
     <tbody>
@@ -27,6 +28,7 @@
             {% endfor %}
           </td>
           <td>{{edition.genre}}</td>
+          <td>{{edition.events.all.last.action}}</td>
         </tr>
       {% endfor %}
     </tbody>

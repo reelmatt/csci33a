@@ -19,9 +19,9 @@
   {% endfor %}
 </h2>
 <p>Publisher: {{edition.book.publisher|default:"None listed."}}</p>
-<p>Published: {{edition.book.pub_year|default:"None listed."}}</p>
+<p>Published: {{edition.pub_year|default:"None listed."}}</p>
 
-<form method="POST" action="{% url 'acquire' edition.isbn_10 %}">
+<form method="POST" action="{% url 'acquire' edition.openlibrary_id %}">
   {% csrf_token %}
   <div class="form-group">
     <label for="genre">Genre</label>
@@ -32,17 +32,19 @@
       {% endfor %}
     </select>
   </div>
+
   <div class="form-group">
       <label for="new_genre">Add a new genre</label>
       <input type="text" class="form-control" name="newGenre" id="newGenre">
   </div>
+
   <div class="form-group">
     <label for="numPages">Number of pages</label>
-    <input type="number" class="form-control" name="numPages" id="numPages" value="{{book.num_pages}}">
+    <input type="number" class="form-control" name="numPages" id="numPages" value="{{edition.num_pages}}">
   </div>
   <div class="form-group">
     <label for="numMinutes">Number of minutes</label>
-    <input type="number" class="form-control" name="numMinutes" id="numMinutes" value="{{book.num_minutes}}">
+    <input type="number" class="form-control" name="numMinutes" id="numMinutes" value="{{edition.num_minutes}}">
   </div>
     <button class="btn btn-outline-success" type="submit">Add to your library</button>
 </form>

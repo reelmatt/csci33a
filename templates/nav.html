@@ -10,6 +10,8 @@
       <!-- If a user is logged in -->
       {% if user.is_authenticated %}
         <!-- Welcome them, with dropdown links -->
+
+        <a class="nav-item nav-link" href="{% url 'add book' %}">Add book</a>
         <a class="nav-item nav-link dropdown dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Hello, {{user}}</a>
 
         <div class="dropdown-menu dropdown-menu-md-right" aria-labelledby="navbarDropdown">

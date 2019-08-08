@@ -23,7 +23,8 @@ class Library(models.Model):
 class Book(models.Model):
     title = models.CharField(max_length=256)
     authors = models.ManyToManyField('Author', related_name="books")
-    publisher = models.ForeignKey('Publisher', on_delete=models.CASCADE, related_name="books")
+    description = models.TextField(blank=True)
+    publisher = models.ForeignKey('Publisher', on_delete=models.CASCADE, related_name="books", blank=True, null=True)
     genre = models.ForeignKey('Genre', on_delete=models.CASCADE, related_name="editions", blank=True, null=True)
 
     def __str__(self):
@@ -33,6 +34,10 @@ class Book(models.Model):
 class Edition(models.Model):
     # The base book
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="editions")
+
+    # Cover photo
+    cover = models.URLField(blank=True)
+
 
     # Book IDs
     isbn_10 = models.CharField(max_length=10, blank=True)

@@ -13,23 +13,22 @@
 <div class="row">
     <section class="listing">
         <h3>Your search for '{{ query }}' returned {{ books|length }} results.</h3>
-        <h4>{{request.GET.query}}</h4>
             {% for book in books %}
-
                 <div class="card">
                    <!-- Book cover, linked to Open Library -->
                    <a href="http://openlibrary.org/isbn/{{book.isbn|first}}"><img src="https://covers.openlibrary.org/b/id/{{book.cover_i}}-L.jpg" class="book-cover card-img-right"></a>
 
                    <!-- Book info, links to individual book page -->
-                   <a href="/books/{{request.GET.query|default_if_none:'what'}}" class="card-link" class="card-link">
+                   <!-- <a href="/books/{{book.key|slice:"7:"}}" class="card-link" class="card-link"> -->
+                   <a href="{% url 'work' query forloop.counter0 %}" class="card-link" class="card-link">
                     <div class="card-body">
                         <h5 class="card-title">{{book.title}}</h5>
                         <h6 class="card-subtitle mb-2 text-muted">by {{book.author_name|first}}</h6>
-                        <p>ISBN: {{book.isbn|first}}</p>
                     </div>
                   </a>
                 </div>
-
+            {% empty %}
+              <p>Do you want to <a href="{% url 'add book' %}">add this book</a> to the database?</p>
             {% endfor %}
     </section>
 </div>

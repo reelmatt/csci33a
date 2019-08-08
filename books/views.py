@@ -19,7 +19,7 @@ from users.models import User
 # they want.
 @login_required
 def acquire(request, book_id):
-
+    print(f"IN acquire, the book_id is {book_id}")
     edition = retrieve_edition(request, book_id)
 
     if edition is None:
@@ -35,17 +35,25 @@ def acquire(request, book_id):
         }
         return render(request, "books/acquire.html", context)
 
+    print("THIS WAS A POSTed FORM")
     # Add edition to the library
     library = Library.objects.get(pk=request.user.id)
 
-    genre_args = {"name": request.POST["newGenre"]}
-    genre = make_book_prop(Genre, **genre_args)
+    if request.POST["newGenre"] != "":
+        genre_args = {"name": request.POST["newGenre"]}
+        genre_created = make_book_prop(Genre, **genre_args)
 
+        if genre_created is not None:
+            genre = Genre.objects.get(name=request.POST['newGenre'])
+    else:
+        genre = Genre.objects.get(name=request.POST['genre'])
+
+    print(f"\n\n\nWhat is the genre? {genre}")
 
     kwargs = {
         "edition": edition,
-        # "genre": genre,
-        "genre": Genre.objects.get(name=request.POST['newGenre']),
+        "genre": genre,
+        # "genre": Genre.objects.get(name=request.POST['newGenre']),
     }
 
     minutes = book_minutes(request)
@@ -64,10 +72,36 @@ def acquire(request, book_id):
 
     library.editions.add(user_edition)
     library.save()
-
+    print(f"WE JUST ADDED A BOOK to the library - {user_edition}")
     add_event(request, user_edition)
 
     return HttpResponseRedirect(reverse("book", kwargs={"book_id": book_id}))
+
+@login_required
+def add(request):
+    if request.method == "GET":
+        return render(request, "books/add.html")
+
+    print("POST route, adding book and edition")
+    book = Book.objects.create(
+        title = request.POST.get("title"),
+        # publisher = request.POST.get("publisher"),
+        # genre = request.POST.get("genre"),
+    )
+    print(f"added book {book}")
+    edition = Edition.objects.create(
+        book = book,
+        isbn_10 = request.POST.get("isbn_10"),
+        isbn_13 = request.POST.get("isbn_13"),
+        pub_year = request.POST.get("pub_year"),
+        num_pages = request.POST.get("num_pages"),
+        # num_minutes = request.POST.get("num_minutes"),
+    )
+
+    print(f"added edition {edition}")
+    return HttpResponseRedirect(reverse("home"))
+
+
 
 def book_minutes(request):
     try:
@@ -80,7 +114,7 @@ def book_minutes(request):
 def retrieve_edition(request, book_id):
     edition = None
     try:
-        edition = Edition.objects.get(isbn_10=book_id)
+        edition = Edition.objects.filter(openlibrary_id=book_id).first()
     except Edition.DoesNotExist:
         # Add book, and try again before reporting error
         error_message(request, "That book does not exist.")
@@ -105,26 +139,30 @@ def make_book_prop(model, **kwargs):
     except model.DoesNotExist:
         print("model did not exist.")
         item = model.objects.create(**kwargs)
+        # item = model.objects.get(**kwargs)
 
     return item
 
 def book(request, book_id):
-    result = search_openlibrary(book_id)
-
     # Access a dictionary item by index
     # https://stackoverflow.com/questions/30362391/how-do-you-find-the-first-key-in-a-dictionary
-    try:
-        key = list(result.keys())[0]
-    except IndexError:
-        error_message(request, f"We don't have a book by that id - {book_id}.")
-        return HttpResponseRedirect(reverse("search"))
-    ol_book = result[key]
+    print(f"\n\n\nIN BOOK ROUTE, id is {book_id}")
+    id = f"books/{book_id}"
+    ids = [book_id]
+    result = get_openlibrary_editions(ids)
+    print(f"\n\n{result}")
+    # try:
+    #     key = list(ol_book.keys())[0]
+    # except IndexError:
+    #     error_message(request, f"We don't have a book by that id - {book_id}.")
+    #     return HttpResponseRedirect(reverse("search"))
+    ol_book = result[f"OLID:{book_id}"]
 
-    book = find_book_book(ol_book, request)
-    edition = find_book_edition(book_id, book, ol_book)
+    book = find_book(ol_book, request)
+    edition = find_edition(book_id, book, ol_book)
 
     context = {
-        "edition": edition
+        "edition": edition,
     }
     return render(request, "books/book.html", context)
 
@@ -137,11 +175,35 @@ def add_edition(book, book_id, ol_book):
     except ValueError:
         year = None
 
-    edition = Edition.objects.create(
-        book = book,
-        isbn_10 = book_id,
-        pub_year = year
-    )
+    kwargs = {
+        "book": book,
+        "pub_year": year,
+    }
+
+    identifiers = ol_book.get("identifiers")
+    if identifiers:
+        if identifiers.get("isbn_10"):
+            kwargs["isbn_10"] = identifiers["isbn_10"][0]
+        if identifiers.get("isbn_13"):
+            kwargs["isbn_13"] = identifiers["isbn_13"][0]
+        if identifiers.get("goodreads"):
+            kwargs["goodreads_id"] = identifiers["goodreads"][0]
+        if identifiers.get("openlibrary"):
+            kwargs["openlibrary_id"] = identifiers["openlibrary"][0]
+
+    if ol_book.get("number_of_pages"):
+        kwargs["num_pages"] = ol_book["number_of_pages"]
+
+    if ol_book.get("cover"):
+        kwargs["cover"] = ol_book.get("cover").get("large")
+
+    edition = Edition.objects.create(**kwargs)
+
+    # edition = Edition.objects.create(
+    #     book = book,
+    #     isbn_10 = book_id,
+    #     pub_year = year
+    # )
 
     print(f"returning with a new edition. {edition}")
     return edition
@@ -150,9 +212,15 @@ def add_book(request, ol_book):
     authors = get_book_info(ol_book, "authors", Author)
     publisher = get_book_info(ol_book, "publishers", Publisher)
     genre = get_book_info(ol_book, "subjects", Genre)
+    description = ol_book.get("description")
 
+    print(f"\n\n\n\nIN ADD_BOOK()")
+    print(f"authors are {authors}")
+    print(f"publisher is {publisher}")
+    print(f"and genre is {genre}")
     book = Book.objects.create(
         title = ol_book["title"],
+        description = description if description else "",
         publisher = publisher,
         genre = genre,
     )
@@ -162,7 +230,7 @@ def add_book(request, ol_book):
     print(f"Returning from add_book, result was {book}")
     return book
 
-def find_book_book(ol_book, request):
+def find_book(ol_book, request):
     try:
         title = ol_book["title"]
         book = Book.objects.filter(title=title).first()
@@ -174,16 +242,18 @@ def find_book_book(ol_book, request):
 
     return book
 
-def find_book_edition(book_id, book, ol_book):
+def find_edition(book_id, book, ol_book):
     # Performing OR searches in Model.filter
     # https://docs.djangoproject.com/en/2.2/ref/models/querysets/#django.db.models.Q
     try:
-        isbn13 = Q(isbn_13=book_id)
-        isbn10 = Q(isbn_10=book_id)
-        editions = Edition.objects.filter(isbn10 | isbn13)
+        openlibrary = Q(openlibrary_id=book_id)
+        editions = Edition.objects.filter(openlibrary)
+        # isbn10 = Q(isbn_10=book_id)
+        # editions = Edition.objects.filter(isbn10 | isbn13)
     except Edition.DoesNotExist:
         print(f"Whoops, no editions exist for id {book_id}")
 
+    print(f"\n\n\n\nWe found an edition! {editions}")
     if len(editions) is 0:
         edition = add_edition(book, book_id, ol_book)
     else:
@@ -246,9 +316,23 @@ def add_book_item(model, **kwargs):
     print(f"adding args {kwargs}")
     return model.objects.create(**kwargs)
 
-def search_openlibrary(book_id):
+
+def get_openlibrary_editions(book_ids):
+    editions = {}
+    key = ""
+
     url = "http://openlibrary.org/api/books?"
-    key = f"ISBN:{book_id}"
+    for i in range(len(book_ids[0:10])):
+        print(book_ids[i])
+        if i is 0:
+            key = f"OLID:{book_ids[i]}"
+        elif i is len(book_ids[0:10]):
+            key = f"{key},OLID:{book_ids[i]}"
+        else:
+            key = f"{key},OLID:{book_ids[i]},"
+
+
+    print(f"What did we get for keys? {key}");
 
     res = requests.get(url, params={
         "bibkeys": key,
@@ -256,12 +340,14 @@ def search_openlibrary(book_id):
         "jscmd": "data",
     })
 
+
     if res.status_code != 200:
         raise Exception("ERROR: API request unsuccessful.")
 
     # Parse response and extract info
     data = res.json()
 
+    # print(data)
     return data
 
 
