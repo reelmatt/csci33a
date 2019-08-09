@@ -1,9 +1,10 @@
 import os
 import requests
-
+from django.apps import apps
 from django.shortcuts import render
-
-
+from django.db.models import Q
+from library.models import Book
+# Peform a search
 def search(request):
     if not request.GET:
         return render(request, "search/search.html")
@@ -14,56 +15,42 @@ def search(request):
     if option is None:
         option = "title"
 
-    result = search_openlibrary(query, option)
+    ol_query = f"{option}={query}"
+    result = search_openlibrary(ol_query)
 
-    safe_query = "-".join(query.split(" "))
+    title = Q(title=query)
+    authors = Q(authors__first_name=query)
+    db_books = Book.objects.filter(
+        title | authors
+    ).all()
 
     context = {
         "query": f"{option}={query}",
-        "safeQuery": safe_query,
+        "safeQuery": "-".join(query.split(" ")),
         "books": result,
+        "db_books": db_books,
     }
     return render(request, "search/books.html", context)
 
-
-
 def work(request, book_query, index):
-    print(f"RETRIEVING A BOOK: {book_query} with index {index}.")
     safe_query = "%20".join(book_query.split(" "))
-    result = search_openlibrary_indvididual(safe_query, index)
+    result = search_openlibrary(safe_query)
 
     selected = result[index]
-
-
     work = get_openlibrary_works(selected["key"])
 
-    # print(work)
     editions = get_openlibrary_editions(selected['edition_key'])
 
     context = {
         "work": work,
         "num_editions": len(selected['edition_key']),
         "editions": editions,
-        # "edition": edition
     }
     return render(request, "search/work.html", context)
 
-
-def search_openlibrary(query, option):
-    url = "http://openlibrary.org/search.json?"
-    res = requests.get(url, params={option: query})
-
-    if res.status_code != 200:
-        raise Exception("ERROR: API request unsuccessful.")
-
-    # Parse response and extract info
-    data = res.json()
-
-    return data["docs"]
-
-
-
-def search_openlibrary_indvididual(query, index):
+# Search
+# https://openlibrary.org/dev/docs/api/search
+def search_openlibrary(query):
     url = f"http://openlibrary.org/search.json?{query}"
     res = requests.get(url)
 
@@ -72,9 +59,10 @@ def search_openlibrary_indvididual(query, index):
 
     # Parse response and extract info
     data = res.json()
-
     return data["docs"]
 
+# Create a list of OLIDs to query Open Library API for
+# https://openlibrary.org/dev/docs/api/books
 def get_openlibrary_editions(book_ids):
     editions = {}
     key = ""
@@ -89,52 +77,23 @@ def get_openlibrary_editions(book_ids):
         else:
             key = f"{key},OLID:{book_ids[i]},"
 
-
-    print(f"What did we get for keys? {key}");
-
     res = requests.get(url, params={
         "bibkeys": key,
         "format": "json",
         "jscmd": "data",
     })
 
-
     if res.status_code != 200:
         raise Exception("ERROR: API request unsuccessful.")
 
     # Parse response and extract info
     data = res.json()
-
-    # print(data)
     return data
 
-def get_openlibrary_book(book_id):
-    url = f"https://openlibrary.org/books/{book_id}.json"
-
-    res = requests.get(url)
-
-
-    if res.status_code != 200:
-        raise Exception("ERROR: API request unsuccessful.")
-
-    # Parse response and extract info
-    data = res.json()
-
-    return data["title"]
-
+# Get Works - append '.json' to end of URL to get results
+# https://openlibrary.org/developers/api
 def get_openlibrary_works(work_id):
-
-
     base_url = f"http://openlibrary.org/{work_id}.json"
-
-    # url = "http://openlibrary.org/api/books?"
-    # key = f"OLID:{book_id}"
-
-    # res = requests.get(url, params={
-    #     "bibkeys": key,
-    #     "format": "json",
-    #     "jscmd": "data",
-    # })
     res = requests.get(base_url)
 
     if res.status_code != 200:
@@ -142,5 +101,4 @@ def get_openlibrary_works(work_id):
 
     # Parse response and extract info
     data = res.json()
-
     return data
