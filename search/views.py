@@ -10,7 +10,6 @@ def search(request):
 
     query = request.GET.get("query")
     option = request.GET.get("queryOptions")
-    print(f"\n\nTHE SEARCH QUERY - {query}, options, {option}")
 
     result = search_openlibrary(query, option)
 
@@ -28,14 +27,10 @@ def search(request):
 def work(request, book_query, index):
     print(f"RETRIEVING A BOOK: {book_query} with index {index}.")
     safe_query = "%20".join(book_query.split(" "))
-    print(f"safe_query is: {safe_query}")
     result = search_openlibrary_indvididual(safe_query, index)
-    # print(f"\n\n{result}")
-
 
     selected = result[index]
-    # print(f"\n\n{selected}")
-    # print(selected["key"])
+
 
     work = get_openlibrary_works(selected["key"])
 
@@ -49,28 +44,6 @@ def work(request, book_query, index):
         # "edition": edition
     }
     return render(request, "search/work.html", context)
-
-
-def search_goodreads(isbn):
-
-    key = os.getenv("GOODREADS_KEY")
-
-    print(f"searching... key is {key}")
-    # Base URL to query
-    # Documentation @ https://www.goodreads.com/api/index#book.review_counts
-    url = "https://www.goodreads.com/book/review_counts.json"
-    res = requests.get(url, params={"isbns": isbn, "key": key})
-
-    # Check response is OK
-    if res.status_code != 200:
-        raise Exception("ERROR: API request unsuccessful.")
-
-    # Parse response and extract info
-    data = res.json()
-    ratings_count = data["books"][0]["work_ratings_count"]
-    average = data["books"][0]["average_rating"]
-
-    return {"count": ratings_count, "rating": average}
 
 
 def search_openlibrary(query, option):
