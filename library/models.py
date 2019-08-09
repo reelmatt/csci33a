@@ -32,7 +32,6 @@ class Edition(models.Model):
     # Cover photo
     cover = models.URLField(blank=True)
 
-
     # Book IDs
     isbn_10 = models.CharField(max_length=10, blank=True)
     isbn_13 = models.CharField(max_length=13, blank=True)

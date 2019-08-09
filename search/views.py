@@ -4,20 +4,26 @@ from django.apps import apps
 from django.shortcuts import render
 from django.db.models import Q
 from library.models import Book
+
 # Peform a search
 def search(request):
+    # If no query parameters, return blank page
     if not request.GET:
         return render(request, "search/search.html")
 
+    # Get parameters
     query = request.GET.get("query")
     option = request.GET.get("queryOptions")
 
+    # If none specified, default to Title
     if option is None:
         option = "title"
 
+    # Seach Open Library
     ol_query = f"{option}={query}"
     result = search_openlibrary(ol_query)
 
+    # Search own Book Survey db
     title = Q(title=query)
     authors = Q(authors__first_name=query)
     db_books = Book.objects.filter(
@@ -32,6 +38,7 @@ def search(request):
     }
     return render(request, "search/books.html", context)
 
+# Pull in Open Library information for selected work
 def work(request, book_query, index):
     safe_query = "%20".join(book_query.split(" "))
     result = search_openlibrary(safe_query)

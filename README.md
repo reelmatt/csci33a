@@ -14,15 +14,15 @@ As mentioned in my initial proposal, the basic idea for my site was a modified
 version of Goodreads; the Book Survey app is meant to be a pseudo-library that tracks multiple-stages of the book-ownership life. The goals I set out in the proposal were:
   + Good:
     + Organize books (add to individual library)
-      + This is the feature that took the most time, due to the Open Library
+      + This is the feature that took the most time to develop, due to the Open Library
         API. Going to the 'search' route and performing a query seems like it
-        returns promising results, but each 'work', as Open Library calls the
-        result, contains many different 'books', or editions, that can be
+        returns promising results, but each 'work' (as Open Library calls the
+        result) contains many different 'books', or editions, that can be
         selected from. My app shows the listing, and then an individual book
-        page to list the different options, which you can usually pick the one
+        page to list the different options, from which you can usually pick the one
         you want based on the publisher info.
     + Customize "default" information pulled in from 3rd-party source
-      + If you find a book you like, and you click the 'Acquire' button, it
+      + If you find a book you like, and you click the 'Acquire' button, the app
         displays a form with the information it will store in your library.
         Most fields will be editable, so you can change how a book is
         classified; helpful if you don't like the genre associated with the book. This is even more of a necessary feature using the Open Library
@@ -30,46 +30,44 @@ version of Goodreads; the Book Survey app is meant to be a pseudo-library that t
     + More granular report of statistics
       + This is a partial success in my book. The reporting isn't as
         sophisticated as I imagined at the beginning, but it does lay the
-        groundwork to easily add and customize going forward.
+        groundwork to continue to add and customize going forward.
   + Better:
     + Categorize books by state (reading, to-be-read, did-not-finish)
       + Like the statistics, I can imagine this feature being more
         fully-fledged in the future. You can categorize books in different
-        states by assigning as status to them (accessed via *Your Library*).
+        states by assigning a status to them (accessed via 'Your Library').
         You can get a grouping effect essentially by requesting stats for a
-        given 'Action' (reading, TBR, DNF, etc.) and then specifying a long
+        given 'Action' (Reading, TBR, DNF, etc.) and then specifying a long
         enough report window.
     + Add unpublished works (like ARCs)
       + In addition to search, which will query the Open Library database,
         users can also add a book manually, which could allow duplicates as
         currently implemented (there is no check to see if the ISBN is a
-        duplicated, for example), is intended to be used for adding unpublished
+        duplicate, for example), is intended to be used for adding unpublished
         works, or results that would not otherwise show up in the Open Library
         database (like Advanced Reader Copies, and others).
   + Best:
     + Share information/books logged in Book Survey on Goodreads
-      + I completely ran out of time to try and implement this feature. As
-        noted in my initial proposal, there seemed to be a bug with
-        user/profile IDs, which may have complicated things even further.
+      + I was focused more on the Good and Better categories, so ended up running
+      out of time to try and implement this feature. As noted in my initial proposal,
+      there seemed to be a bug with user/profile IDs in Goodreads, which may complicate the creation of this feature  even further.
 
-Many parts of this project proved more difficult, or in-depth than I originally
-anticipated or expected. Overall, I feel good with the end result; not
+Many parts of this project proved more difficult and more in-depth than I
+originally anticipated. Overall, I feel positive about the end result; not
 necessarily with how some of the specific pages look or function, but with
 the setup and structure of how I went about designing the site.
 
-Two areas this shows is the database design (more info below), and taking a
-structured approach during development. For the database design, similar to
-project 3 where I did a lot of planning before writing code, I followed a
-similar process for this app. A few changes and additions needed to be made
-along the way, but the thinking I did for the database really helped drive
-structuring development, and I think it sets a strong foundation for further
-development.
+Two areas this is apparent in are the database design (more info below) and
+taking a structured approach during development. For the database design I
+followed a process similar to project 3, where I put in time and effort to plan
+before writing the code. A few changes and additions needed to be made along the way, but the thinking I did for the database really helped drive structuring development,
+and I think it sets a strong foundation for further development work.
 
 I separated major features out into separate branches to structure adding new
 pieces, instead of trying to build everything at once. That did help get me up
 and running a whole lot faster, which helped to iterate faster as well.
 
-When it came to fine tuning the details, I feel a lot less happy compared to
+When it came to fine tuning the details, I'm less pleased compared to
 previous projects. A lot of development went into re-writing the
 search/addition feature, which proved difficult. Figuring out differences
 between ISBNs, editions, books, publishers, authors, and others was much more
@@ -156,11 +154,14 @@ contain a sharing component. To keep things simple, at least for this final
 project, libraries are implemented as a OneToOneField with users. Each user
 can have only one library, and therefore, each library can have only one user.
 
-In a library can exist multiple Editions. An Edition is an instance of a Book,
-which customized information for the given user. Say a Book is listed with a
-category of Science Fiction but the user classifies it as Fantasy. Another
-example is page count or minutes, which could vary depending on physical,
-digital ebook, or audiobook that user is reading.
+One Library can have multiple UserEditions. A UserEdition references an Edition,
+which in turn references a Book. A Book stores basic, unchanging information like
+the title, author, and publisher. An Edition stores information that can change,
+or is otherwise more detailed like number of pages, book identifiers (ISBN, etc.).
+A UserEdition stores user-specified information that might differ from what the
+Open Library database prescribes. For example, say a Book is listed with a category
+of Science Fiction but the user classifies the book as Fantasy. That change is
+stored in the UserEdition model.
 
 + User (custom model)
     + No changes/additions
@@ -170,9 +171,6 @@ digital ebook, or audiobook that user is reading.
         + OneToOneField (Each library has only one user - each user has only one library)
     + edition_id
         + ManyToManyField (Many books can belong to many libraries)
-    + category (if different from edition value)
-    + num_pages (if different from edition value)
-    + num_minutes (if different from edition value)
 + Book (basic, un-changeable book info)
     + Title
         + CharField
@@ -180,6 +178,7 @@ digital ebook, or audiobook that user is reading.
         + ManyToManyField (Many books can belong to many authors - some have multiple)
     + Publisher_id
         + ForeignKey (Many books can belong to one publisher)
+    + genre_id
 + Edition (more detailed book info that can vary)
     + book_id
         + ForeignKey (A book can have many editions)
@@ -195,17 +194,21 @@ digital ebook, or audiobook that user is reading.
         + Int
     + format
         + ForeignKey (Many books can belong to one type of format)
-    + category_id
     + num_pages (for non-audiobooks)
         + Int
     + num_minutes (only for audiobooks)
         + Int
++ UserEdition
+    + edition_id (ForeignKey)
+    + genre (if different from edition value)
+    + num_pages (if different from edition value)
+    + num_minutes (if different from edition value)
 + Author
     + First name
         + CharField
     + Last name
         + CharField
-+ Category
++ Genre
     + Name (e.g. Science Fiction, Historical, Biography, etc.)
         + CharField
 + Publisher
