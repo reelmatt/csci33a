@@ -10,12 +10,6 @@ class Library(models.Model):
     # An assortment of 'Editions', or more-specific book information
     editions = models.ManyToManyField('UserEdition', related_name="libraries", blank=False)
 
-    # Optional customizations made by user if their version deviates from the
-    # 'standard' edition info found on Open Library or Goodreads
-    # genre = models.ForeignKey('Genre', on_delete=models.CASCADE, related_name="libraries", blank=True, null=True)
-    # num_pages = models.PositiveIntegerField(blank=True, null=True)
-    # num_minutes = models.DurationField(blank=True, null=True)
-
     def __str__(self):
         return f"{self.user}'s Library'"
 
