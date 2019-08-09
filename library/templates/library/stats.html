@@ -10,12 +10,12 @@
 
 {% block body %}
 
-Books acquired in the last day: {{acquired|length}}
+Books {{selectedAction}} in the last {{days}} day{{days|pluralize}}: {{results|length}}
 <ul>
-  {% for book in acquired %}
+  {% for book in results %}
     <li>{{book}}</li>
   {% empty %}
-    <li>You haven't acquired any books in the last day.</li>
+    <li>You haven't {{selectedAction}} any books in the last {{days}} day{{days|pluralize}}.</li>
   {% endfor %}
 </ul>
 
@@ -27,14 +27,14 @@ Books acquired in the last day: {{acquired|length}}
     <select class="form-control" name="action" id="action">
       <option value=""></option>
       {% for action in actions %}
-        <option value="{{action}}">{{action}}</option>
+        <option value="{{action}}" {% if action.action == selectedAction %}selected{% endif %}>{{action}}</option>
       {% endfor %}
     </select>
   </div>
 
   <div class="form-group">
     <label for="numDays">Number of days</label>
-    <input type="number" class="form-control" name="numDays" id="numDays">
+    <input type="number" class="form-control" name="numDays" id="numDays" value="{{days}}"">
   </div>
 
   <button type="submit" class="btn btn-primary">Get stats</button>

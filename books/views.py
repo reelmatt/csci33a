@@ -12,6 +12,13 @@ from library.models import Edition, Book, Library, Author, Publisher, Genre, Act
 from django.contrib.auth.decorators import login_required
 from users.models import User
 
+
+'''
+Main routes
+--acquire: Apply any user customizations and add to user's library
+--add: Create a new book to add to the database
+--book: Display information about a book
+'''
 # Acquire route
 # Will search Book Survey database to see if it finds a book matching the ID.
 # If it does, it will display a form for the user to confirm/change any personal
@@ -19,6 +26,7 @@ from users.models import User
 # back to the 'book' page.
 @login_required
 def acquire(request, book_id):
+    # Try to retrieve an edition specified by 'book_id'
     edition = retrieve_edition(request, book_id)
 
     if edition is None:
@@ -75,7 +83,7 @@ def add(request):
     if request.method == "GET":
         return render(request, "books/add.html")
 
-    # Otherwise POST, try to add book/edition to database
+    # Otherwise POST, try to add book to database
     book = Book.objects.create(
         title = request.POST.get("title"),
         publisher = get_book_info(request.POST.get("publisher"), "publishers", Publisher),
@@ -140,12 +148,13 @@ def add_book(request, ol_book):
     return book
 
 def add_edition(book, book_id, ol_book):
-
-    year = validate_form_number(ol_book['publish_date'])
     kwargs = {
         "book": book,
-        "pub_year": datetime.date(year, 1, 1),
     }
+
+    year = validate_form_number(ol_book['publish_date'])
+    if year is not None:
+        kwargs["pub_year"] = datetime.date(year, 1, 1)
 
     identifiers = ol_book.get("identifiers")
     if identifiers.get("isbn_10"):
@@ -164,6 +173,9 @@ def add_edition(book, book_id, ol_book):
     edition = Edition.objects.create(**kwargs)
     return edition
 
+# Splits the attribute into a list (of one or more). It then tries to find the
+# first element, which it will return if found. Otherwise, it will create a new
+# element with the given info.
 def get_book_info(ol_book, attr, model):
     try:
         info = ol_book.get(attr)
