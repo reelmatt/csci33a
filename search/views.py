@@ -11,6 +11,9 @@ def search(request):
     query = request.GET.get("query")
     option = request.GET.get("queryOptions")
 
+    if option is None:
+        option = "title"
+
     result = search_openlibrary(query, option)
 
     safe_query = "-".join(query.split(" "))
