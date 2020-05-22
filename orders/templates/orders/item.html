@@ -1,0 +1,48 @@
+{% extends "orders/base.html" %}
+
+{% block title %}
+  Item
+{% endblock %}
+
+{% block pagehead %}
+  {{item}} {{item.category}}
+{% endblock %}
+
+{% block body %}
+{% if item %}
+
+<form method="POST" action="{% url 'add_to_cart' %}">
+  {% csrf_token %}
+  <div class="form-group">
+    <h2>Choose a size</h2>
+    {% for size, price in selection %}
+      {% if price %}
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="size" id="{{size}}" value="{{size}}">
+        <label class="form-check-label" for="{{size}}">
+          {{size.size|capfirst}} (${{price}})
+        </label>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  {% if item.toppings.all %}
+    <div class="form-group">
+      <h2>Would you like extras?</h2>
+      {% for topping in item.toppings.all %}
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="toppings[]" value="{{topping}}" id="{{topping}}">
+          <label class="form-check-label" for="{{topping}}">
+            {{topping}} {% if item.category.add_on_cost %}(+ ${{item.category.add_on_cost}}){% endif %}
+          </label>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+  <input type="hidden" id="itemId" name="itemId" value="{{item.id}}">
+  <button type="submit" class="btn btn-primary">Add to cart</button>
+</form>
+{% endif %}
+
+{% endblock %}

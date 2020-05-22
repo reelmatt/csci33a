@@ -1,0 +1,50 @@
+{% extends "orders/base.html" %}
+
+{% block title %}
+  {% if user.is_staff %}
+    Placed Orders
+  {% else %}
+    Order History
+  {% endif %}
+{% endblock %}
+
+{% block pagehead %}
+  {% if user.is_staff %}
+    Placed Orders
+  {% else %}
+    Order History
+  {% endif %}
+{% endblock %}
+
+{% block body %}
+{% if orders %}
+  <table class="table table-sm">
+    <thead class="table-borderless">
+      <tr>
+        <th scope="col">Order #</th>
+        {% if user.is_staff %}
+          <th scope="col">Customer</th>
+        {% endif %}
+        <th scope="col">Ordered Time</th>
+        <th scope="col">Amount</th>
+        <th scope="col">Status</th>
+      </tr>
+    <tbody>
+      {% for order in orders %}
+        <tr>
+          <td><a href="{% url 'order' order.id %}">{{order}}</a></td>
+          {% if user.is_staff %}
+            <td>{{order.customer}}</td>
+          {% endif %}
+          <td>{{order.creation_time}}</td>
+          <td>${{order.cost}}</td>
+          <td>{{order.status}}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>There are currently no orders.</p>
+{% endif %}
+
+{% endblock %}

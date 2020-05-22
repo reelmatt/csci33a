@@ -1,0 +1,33 @@
+<nav class="navbar navbar-expand-md navbar-light">
+  <a class="navbar-brand" href="/">
+    Pinnochio's Pizza & Subs
+  </a>
+
+  <div class="collapse navbar-collapse d-flex justify-content-md-end">
+    <div class="navbar-nav">
+      <!-- Always show the menu -->
+      <a class="nav-item nav-link" href="{% url 'menu' %}">Menu</a>
+
+      <!-- If a user is logged in -->
+      {% if user.is_authenticated %}
+        <!-- Welcome them, with dropdown links -->
+        <a class="nav-item nav-link dropdown dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Hello, {{user}}</a>
+
+        <div class="dropdown-menu dropdown-menu-md-right" aria-labelledby="navbarDropdown">
+          {% if user.is_staff %}
+          <a class="dropdown-item" href="{% url 'view_orders' %}">Placed Orders</a>
+          {% else %}
+          <a class="dropdown-item" href="{% url 'cart' %}">Cart</a>
+          <a class="dropdown-item" href="{% url 'view_orders' %}">Order History</a>
+          {% endif %}
+          <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+        </div>
+
+      <!-- Display links to login or create account, if no user authenticated -->
+      {% else %}
+        <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
+        <a class="nav-item nav-link" href="{% url 'register' %}">Create Account</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>
