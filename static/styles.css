@@ -1,0 +1,136 @@
+/*********************************************************************
+ * Sidebar/channel stylings
+ *********************************************************************/
+aside {
+  background-color: lightblue;
+}
+
+h1 {
+  font-variant: small-caps;
+}
+
+#channels {
+  list-style-type: none;
+  padding-left: 0;
+}
+#channels li {
+  margin-left: 0;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+#createChannel:hover {
+  text-decoration: none;
+}
+
+#channelHead,
+footer {
+  padding: 20px;
+  background-color: #1c4280;
+  color: white;
+}
+
+/*********************************************************************
+ * Main display (messages, selected channel, display name form)
+ *********************************************************************/
+main > div {
+  width: 100%;
+}
+
+#messageList {
+  list-style-type: none;
+  padding-left: 0;
+}
+#messageList li {
+  padding-bottom: 10px;
+}
+#messageList li .card-subtitle,
+#messageList li .card-title {
+  display: inline;
+}
+
+#messageContents {
+  width: 100%;
+  padding-left: 10px;
+  margin: 0 auto;
+  display: inline;
+}
+
+#messageForm {
+  padding: 10px;
+  margin-left: 19px;
+}
+
+.deleteMessage {
+  display: inline;
+  float: right;
+}
+
+.fixed-top {
+  margin-left: 305px;
+}
+
+main.col-md > div {
+  padding-top: 100px;
+}
+
+main.col-md {
+  padding: 0;
+}
+
+footer {
+  margin-left: 100px;
+}
+
+footer > .col {
+  padding: 0;
+  margin: 0;
+}
+
+footer.row {
+  bottom: 0;
+  padding: 0 auto;
+  margin: 0 auto;
+}
+
+#displayNameSection {
+  padding: auto;
+}
+
+/*********************************************************************
+ * Responsive Styles
+ *********************************************************************/
+@media (min-width: 768px) {
+  aside.col-md {
+    flex: 0 1 20rem;
+  }
+}
+@media (max-width: 767px) {
+  .fixed-top {
+    margin-left: 0;
+    position: static;
+    width: 100%;
+  }
+
+  main.col-md > div {
+    padding-top: 0;
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  main.col-md > div > div > div {
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  #mainDisplay,
+footer {
+    padding: 20px;
+  }
+}
+
+/*# sourceMappingURL=styles.css.map */

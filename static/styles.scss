@@ -1,0 +1,149 @@
+/*********************************************************************
+ * Sidebar/channel stylings
+ *********************************************************************/
+aside {
+  background-color: lightblue;
+}
+
+// Application title
+h1 {
+  font-variant: small-caps;
+}
+
+// Remove most of the li tag default formatting
+#channels {
+  list-style-type: none;
+  padding-left: 0;
+
+  li {
+    margin-left: 0;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+}
+
+#createChannel:hover {
+  text-decoration: none;
+}
+
+#channelHead,
+footer {
+  padding: 20px;
+  background-color: #1c4280;
+  color: white;
+}
+
+/*********************************************************************
+ * Main display (messages, selected channel, display name form)
+ *********************************************************************/
+main > div {
+  width: 100%;
+}
+
+// Add some space between individual messages
+#messageList {
+  list-style-type: none;
+  padding-left: 0;
+
+  li {
+    padding-bottom: 10px;
+
+    .card-subtitle,
+    .card-title {
+      display: inline;
+    }
+  }
+}
+
+#messageContents {
+  width: 100%;
+  padding-left: 10px;
+  margin: 0 auto;
+  display: inline;
+}
+
+#messageForm {
+  padding: 10px;
+  margin-left: 19px;
+}
+
+.deleteMessage {
+  display: inline;
+  float: right;
+}
+
+// Get the #channelHead grouping to stay in the second column
+.fixed-top {
+  margin-left: 305px;
+}
+
+// Add padding to elements below fixed title; prevents from being hidden
+main.col-md > div {
+  padding-top: 100px;
+}
+
+main.col-md {
+  padding: 0;
+}
+
+footer {
+  margin-left: 100px;
+}
+
+footer > .col {
+  padding: 0;
+  margin: 0;
+}
+
+footer.row {
+  bottom: 0;
+  padding: 0 auto;
+  margin: 0 auto;
+}
+
+#displayNameSection {
+  padding: auto;
+}
+
+/*********************************************************************
+ * Responsive Styles
+ *********************************************************************/
+// Style copied from CSCI s-33a course site
+// Keeps aside on the left at a fixed column-width
+@media (min-width: 768px) {
+  aside.col-md {
+    flex: 0 1 20rem;
+  }
+}
+
+// Adjust spacing of fixed-top title, and other elements for smaller screens
+@media (max-width: 767px) {
+  // Reset so channel name bar takes up full-width on smaller screen
+  .fixed-top {
+    margin-left: 0;
+    position: static;
+    width: 100%;
+  }
+  
+  // Reset spacing for main display
+  // padding and margin shorthand properies render differently and not as nicely
+  main.col-md > div {
+    padding-top: 0;
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  main.col-md > div > div > div {
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  #mainDisplay,
+  footer {
+    padding: 20px;
+  }
+}

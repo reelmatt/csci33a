@@ -1,0 +1,26 @@
+<section>
+  <h4>Create a new channel:</h4>
+
+  <!-- If a duplicate channel is entered, error message will appear here -->
+  <div id="channelError"></div>
+
+  <!-- Form to input the name of a new channel -->
+  <form id="channelNameForm" autocomplete=off>
+    <div class="form-group">
+      <input type="text" id="channelName" required placeholder="Channel name">
+      <button type="submit" class="btn btn-success" id="createChannel">+</button>
+    </div>
+  </form>
+
+  <!-- List of all existing channels -->
+  <h4>Existing channels:</h4>
+  <ul id="channels">
+    {% if channels %}
+      {% for channel in channels %}
+        <li><button type="button" class="btn btn-outline-primary channel" name="{{channel}}">#{{channel}}</button></li>
+      {% endfor %}
+    {% else %}
+      <p>There are no channels. Create a new one to begin!</p>
+    {% endif %}
+  </ul>
+</section>
