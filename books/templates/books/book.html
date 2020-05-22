@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Search
+{% endblock %}
+
+{% block pagehead %}
+  Search
+{% endblock %}
+
+{% block body %}
+
+<img src="{{edition.cover}}">
+
+<h1>{{edition.book.title}}</h1>
+<h2>by
+  {% for author in edition.book.authors.all %}
+    {{author}}
+  {% endfor %}
+</h2>
+
+<h4>Additional info:</h4>
+<p>Genre: {{edition.book.genre|default:"None listed."}}</p>
+<p>Publisher: {{edition.book.publishers|default:"None listed."}}</p>
+<p>Published: {{edition.pub_year|default:"None listed."}}</p>
+<p>ISBN 10: {{edition.isbn_10|default:"None listed."}}</p>
+<p>ISBN 13: {{edition.isbn_13|default:"None listed."}}</p>
+<p>Goodreads: {{edition.goodreads_id|default:"None listed."}}</p>
+<p>Open Library: {{edition.openlibrary_id|default:"None listed."}}</p>
+
+{% if edition %}
+<a href="{% url 'acquire' edition.openlibrary_id %}" role="button" class="btn btn-primary btn-sm">Add to your library</a>
+{% endif %}
+{% endblock %}

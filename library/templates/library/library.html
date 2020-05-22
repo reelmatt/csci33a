@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Your Library
+{% endblock %}
+
+{% block pagehead %}
+  Your Library
+{% endblock %}
+
+{% block body %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Title</th>
+        <th scope="col">Authors</th>
+        <th scope="col">Genre</th>
+        <th scope="col">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for edition in library.editions.all %}
+        <tr>
+          <td><a href="{% url 'edition' edition.id%}">{{edition.edition.book.title}}</a></td>
+          <td>
+            {% for author in edition.edition.book.authors.all %}
+              {{author}}
+            {% endfor %}
+          </td>
+          <td>{{edition.genre}}</td>
+          <td>{{edition.events.all.last.action}}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

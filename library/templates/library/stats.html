@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Stats
+{% endblock %}
+
+{% block pagehead %}
+  Stats
+{% endblock %}
+
+{% block body %}
+
+Books {{selectedAction}} in the last {{days}} day{{days|pluralize}}: {{results|length}}
+<ul>
+  {% for book in results %}
+    <li>{{book}}</li>
+  {% empty %}
+    <li>You haven't {{selectedAction}} any books in the last {{days}} day{{days|pluralize}}.</li>
+  {% endfor %}
+</ul>
+
+
+<form method="POST" action="{% url 'stats' %}">
+  {% csrf_token %}
+  <div class="form-group">
+    <label for="action">Action</label>
+    <select class="form-control" name="action" id="action">
+      <option value=""></option>
+      {% for action in actions %}
+        <option value="{{action}}" {% if action.action == selectedAction %}selected{% endif %}>{{action}}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="numDays">Number of days</label>
+    <input type="number" class="form-control" name="numDays" id="numDays" value="{{days}}"">
+  </div>
+
+  <button type="submit" class="btn btn-primary">Get stats</button>
+</form>
+
+
+{% endblock %}
