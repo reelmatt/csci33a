@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+<div class="row">
+    <!-- Book info section -->
+    <section class="col-md-4" id="book-info">
+        <h2>{{book.title}}</h2>
+        <h4 class="text-muted">by {{book.author}}</h4>
+        <p>Published {{book.year}}</p>
+        {% if goodreads%}
+            <p>Goodreads Rating: {{goodreads.rating}} out of 5 stars, based on {{goodreads.count}} reviews.</p>
+        {% endif %}
+        <p>ISBN: {{book.isbn}}</p>
+    </section>
+    <!-- User reviews section -->
+    <section class="col-md-8" id="book-reviews">
+        <h2>User Reviews</h2>
+        {% if not reviews %}
+            <p>There are no reviews yet. Be the first and write one!</p>
+        {% endif %}
+
+        <!-- Create a card for each review logged -->
+        {% for review in reviews %}
+        <div class="card">
+            <div class="card-body">
+                <!-- If the review is by the current user, add link to edit -->
+                {% if review.user_id == user.id %}
+                <h5 class="card-title">You said:</h5>
+                <p class="card-text">{{review.review}}</p>
+                <a href="{{request.path}}/edit" class="card-link">Edit your review</a>
+                {% else %}
+                <h5 class="card-title">{{review.name}} said:</h5>
+                <p class="card-text">{{review.review}}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- If the user hasn't submitted a review, present the form -->
+        {% if not user_reviewed %}
+        <form method="POST" action="/books/{{book.id}}">
+            <div class="form-group">
+                <label for="review">Review:</label>
+                <textarea class="form-control" name="review" id="review">{{review}}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit review</button>
+        </form>
+        {% endif %}
+    </section>
+</div>
+
+{% endblock body %}

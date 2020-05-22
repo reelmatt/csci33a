@@ -1,0 +1,27 @@
+<nav class="navbar navbar-expand-md navbar-light">
+    <a class="navbar-brand" href="{{ url_for('index') }}">
+        Book Review Central
+    </a>
+
+    <div class="collapse navbar-collapse d-flex justify-content-md-end">
+        <div class="navbar-nav">
+            <!-- If a user is logged in, display search and user dropdown -->
+            {% if user %}
+            <form method="POST" action="{{ url_for('search') }}" class="nav-item form-inline my-2">
+                <input class="form-control mr-sm-2" name="query" type="search" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+            </form>
+
+            <a class="nav-item nav-link dropdown dropdown-toggle my-2" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Hello, {{user.name}}</a>
+            <div class="dropdown-menu dropdown-menu-md-right" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href="{{url_for('logout')}}">Logout</a>
+            </div>
+
+            <!-- Otherwise, show login/create account links -->
+            {% else %}
+            <a class="nav-item nav-link" href="{{ url_for('login') }}">Login</a>
+            <a class="nav-item nav-link" href="{{ url_for('register') }}">Create Account</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>

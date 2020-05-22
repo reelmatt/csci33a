@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+<form method="POST" action="/books/{{book_id}}/edit">
+    <div class="form-group">
+        <label for="review">Your Review:</label>
+        <textarea class="form-control" name="review" id="review">{{review}}</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Make changes</button>
+</form>
+
+
+{% endblock body %}
